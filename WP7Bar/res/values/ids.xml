@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="root" />
+
+	<item type="id" name="enable_toggle" />
+	<item type="id" name="boot_toggle" />
+	<item type="id" name="drop_toggle" />
+	<item type="id" name="expand_toggle" />
+	<item type="id" name="color_picker_view" />
+	<item type="id" name="new_color_panel" />
+	<item type="id" name="old_color_panel" />
+	<item type="id" name="ok_button" />
+	<item type="id" name="cancel_button" />
+	<item type="id" name="icon_pref" />
+	<item type="id" name="background_pref" />
+	<item type="id" name="icon_color_preference" />
+	<item type="id" name="background_color_preference" />
+
+	<!-- Status Bar -->
+    <item type="id" name="statusbarview" />
+    <item type="id" name="statusbarstub" />
+    <item type="id" name="statusbar_signal" />
+    <item type="id" name="statusbar_data" />
+    <item type="id" name="statusbar_wifi" />
+    <item type="id" name="statusbar_roaming" />
+    <item type="id" name="statusbar_bluetooth" />
+    <item type="id" name="statusbar_clock" />
+    <item type="id" name="statusbar_battery" />
+    <item type="id" name="themeview" />
+</resources>

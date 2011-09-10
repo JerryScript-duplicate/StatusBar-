@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- Application-wide Strings -->
+    <string name="app_name">StatusBar+</string>
+	<string name="version_name">alpha zero</string>
+	<string name="service_started">StatusBar+</string>
+	<string name="bar_service">StatusBar+</string>
+	<string name="notification_marquee">Select to toggle the custom status bar.</string>
+	<string name="icon_color">Notification icon color</string>
+	<string name="background_color">Background color</string>
+	<string name="boot_preference">Set on boot</string>
+	<string name="change_button">Change</string>
+	<string name="cancel_button">Cancel</string>
+	<string name="expand_preference">Automatically disable expansion</string>
+	<string name="drop_preference">Click to drop</string>
+	
+	<!-- Change log -->
+    <string name="changelog_title_full">Change Log</string>
+    <string name="changelog_title">What\'s New</string>
+    <string name="changelog_ok">OK</string>
+</resources>
