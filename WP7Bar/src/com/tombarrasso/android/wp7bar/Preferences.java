@@ -25,15 +25,23 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 import android.graphics.Color;
+import android.app.ActivityManager;
+
+// Java Packages
+import java.util.List;
 
 /**
  * Static, singleton utility for maintaining preferences. This is just
  * meant to keep things simple, clean, and in one location. Keep things
- * <abbr title="Don't Repeat Yourself">DRY</abbr> by doing so. 
+ * <abbr title="Don't Repeat Yourself">DRY</abbr> by doing so.<br /><br />
+ * <u>Change Log:</u>
+ * <ul>
+ * 	<li>Using {@link ActivityManager} to check if the {@link Service} is running instead of preferences.</li>
+ * </ul>
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-08-2011
- * @version		1.0
+ * @since		09-11-2011
+ * @version		1.01
  * @category	Static Utility
  */
 
@@ -43,8 +51,7 @@ public final class Preferences
 							   PACKAGE = Preferences.class.getPackage().getName();
 
 	// Keys used to store values.
-	private static final String KEY_RUNNING = "service_running",
-								KEY_BOOT = "service_onboot",
+	private static final String KEY_BOOT = "service_onboot",
 								KEY_ICON = "color_icons",
 								KEY_BACKGROUND = "color_background",
 								KEY_EXPAND = "service_expand",
@@ -52,10 +59,12 @@ public final class Preferences
 
 	private static Preferences mInstance;
 	private final Context mContext;
+	private final ActivityManager mActivityManager;
 
 	public Preferences(Context mContext)
 	{
 		this.mContext = mContext;
+		mActivityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
 	}
 
 	/**
@@ -85,17 +94,15 @@ public final class Preferences
 	 */
     public final boolean isServiceRunning()
 	{
-		return getPrefs().getBoolean(KEY_RUNNING, false);
-    }
+		final List<ActivityManager.RunningServiceInfo> mServices =
+			mActivityManager.getRunningServices(Integer.MAX_VALUE);
+		final String mBarService = BarService.PACKAGE + "." + BarService.TAG;
 
-	/**
-	 * Set whether or not the service is running.
-	 */
-	public final void setServiceRunning(boolean running)
-	{
-		final Editor mEditor = getPrefs().edit();
-		mEditor.putBoolean(KEY_RUNNING, running);
-		mEditor.commit();
+		// Check all services to see if ours is running.
+		for (ActivityManager.RunningServiceInfo mService : mServices)
+        	if (mBarService.equals(mService.service.getClassName()))
+            	return true;
+		return false;
 	}
 
 	/**

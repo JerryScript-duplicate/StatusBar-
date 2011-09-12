@@ -2,7 +2,7 @@
 <resources>
 	<!-- Application-wide Strings -->
     <string name="app_name">StatusBar+</string>
-	<string name="version_name">alpha zero</string>
+	<string name="version_name">alpha one</string>
 	<string name="service_started">StatusBar+</string>
 	<string name="bar_service">StatusBar+</string>
 	<string name="notification_marquee">Select to toggle the custom status bar.</string>

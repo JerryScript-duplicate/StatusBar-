@@ -26,5 +26,6 @@
     <item type="id" name="statusbar_bluetooth" />
     <item type="id" name="statusbar_clock" />
     <item type="id" name="statusbar_battery" />
+	<item type="id" name="statusbar_language" />
     <item type="id" name="themeview" />
 </resources>

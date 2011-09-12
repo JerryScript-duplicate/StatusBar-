@@ -237,30 +237,34 @@ public class HomeActivity extends Activity
 			CompoundButton buttonView, boolean isChecked)
 		{
 			// Toggle the service based on the checkbox.
-			if (isChecked && (mConnection.getService() == null))
+			final boolean mServiceRunning = mPrefs.isServiceRunning();
+			if (!mServiceRunning)
 			{
 				startService(mServiceIntent);
 				bindService(mServiceIntent, mConnection, 0);
 				mIsBound = true;
 			}
-			else if (!isChecked && mConnection.getService() != null)
+			else
 			{
 				// Surrounded in the case that the service
 				// has not actually been bound to.
 				try {
 					// Remember to destroy our resources.
-					mConnection.getService().destroy();
-					if (mIsBound) unbindService(mConnection);
+					if (mConnection != null) {
+						final IStatusBarService mService =
+							mConnection.getService();
+						if (mService != null) mService.destroy();
+						if (mIsBound) unbindService(mConnection);
+					}
 					stopService(mServiceIntent);
 					mIsBound = false;
 				}
 				catch(IllegalArgumentException e) {}
 				catch(RemoteException re) {}
 
-				mConnection.nullifyService();
+				if (mConnection != null)
+					mConnection.nullifyService();
 			}
-
-			mPrefs.setServiceRunning(isChecked);
 		}
 	};
 

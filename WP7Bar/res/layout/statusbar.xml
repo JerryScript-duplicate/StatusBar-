@@ -86,4 +86,16 @@
 	    wp:live="true"
 	    wp:color="#FFFFFF" />
 
+	<com.tombarrasso.android.wp7ui.statusbar.LanguageView
+	    android:layout_alignParentTop="true"
+	    android:id="@id/statusbar_language"
+	    android:layout_toLeftOf="@id/statusbar_battery"
+		android:layout_width="32dp"
+	    android:layout_height="15dp"
+	    android:layout_marginLeft="10dp"
+	    android:layout_marginTop="3dp"
+		android:layout_marginRight="4dp"
+	    android:textSize="16dp"
+	    android:textColor="#FFFFFF" />
+
 </com.tombarrasso.android.wp7ui.statusbar.StatusBarView>

@@ -19,10 +19,17 @@
     </style>
   </head>
   <body>
+$ 1.1
+  % alpha one
+  _ 2011-09-11
+	! Thank you for supporting StatusBar+!
+	* Fixed issue with toggling on/ off. Now the checkbox should more accurately represent whether or not the status bar is on.
+	* Added language indicator (requires toggle to refresh if you change your language).
+	* A few, small bug fixes.
+	* Note: For all changes in settings to take effect you must toggle the status bar off then back on. Also, the clock is not the only indicator that displays you need to either disable "Click to drop" or tab the status bar.
 $ 1.0
   % alpha zero
   _ 2011-09-07
-	! Thank you for purchasing StatusBar+!
 	* To change the background/ icon color be sure to disable then re-enable the status bar!
 	* This is the initial release of StatusBar+. Please note that there may be bugs. If you experience a bug please do not take it to the comments section of this application, instead send me an <a href="mailto:tbarrasso@sevenplusandroid.org">email</a> listing your device, Android version, ROM (if applies), and any other relevant information.
 $ END_OF_CHANGE_LOG

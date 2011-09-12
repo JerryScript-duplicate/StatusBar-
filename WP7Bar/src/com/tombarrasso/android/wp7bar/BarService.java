@@ -245,9 +245,6 @@ public final class BarService extends Service
 	    }
 
 		removeListeners();
-
-		// Update the setting.
-		mPrefs.setServiceRunning(false);
 	}
 
 	/**
@@ -331,9 +328,6 @@ public final class BarService extends Service
 		// We put an icon in the status bar.
         showNotification();
 		createStatusBar();
-
-		// Our service is now running.
-		mPrefs.setServiceRunning(true);
 	}
 	
     @Override
@@ -345,8 +339,6 @@ public final class BarService extends Service
 		if (mNM != null)
 			mNM.cancel(NOTIFICATION);
 
-		// Update the setting.
-		mPrefs.setServiceRunning(false);
 		super.onDestroy();
 	}
 
