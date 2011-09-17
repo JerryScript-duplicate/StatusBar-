@@ -25,6 +25,7 @@ import afzkl.development.mColorPicker.views.ColorPickerView.OnColorChangedListen
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -66,20 +67,39 @@ public class ColorPickerDialog extends AlertDialog implements
 		setTitle("Pick a Color");
 		// setIcon(android.R.drawable.ic_dialog_info);
 
-		mColorPicker = (ColorPickerView) layout
-				.findViewById(R.id.color_picker_view);
-		mOldColor = (ColorPanelView) layout.findViewById(R.id.old_color_panel);
-		mNewColor = (ColorPanelView) layout.findViewById(R.id.new_color_panel);
+		try
+		{
+			mColorPicker = (ColorPickerView) layout
+					.findViewById(R.id.color_picker_view);
+		}
+		catch(ClassCastException e) { }
+		
+		try
+		{
+			mOldColor = (ColorPanelView) layout.findViewById(R.id.old_color_panel);
+		}
+		catch(ClassCastException e) { }
 
-		((LinearLayout) mOldColor.getParent()).setPadding(Math
+		try
+		{
+			mNewColor = (ColorPanelView) layout.findViewById(R.id.new_color_panel);
+		}
+		catch(ClassCastException e) { }
+
+		if (mOldColor != null && mColorPicker != null)
+			((LinearLayout) mOldColor.getParent()).setPadding(Math
 				.round(mColorPicker.getDrawingOffset()), 0, Math
 				.round(mColorPicker.getDrawingOffset()), 0);
 
-		mColorPicker.setOnColorChangedListener(this);
+		if (mColorPicker != null)
+			mColorPicker.setOnColorChangedListener(this);
 
-		mOldColor.setColor(color);
-		mColorPicker.setColor(color, true);
-	
+		if (mOldColor != null)
+			mOldColor.setColor(color);
+
+		if (mColorPicker != null)
+			mColorPicker.setColor(color, true);
+
 		// Default enable alpha slider.
 		setAlphaSliderVisible(true);
 	}
@@ -95,7 +115,8 @@ public class ColorPickerDialog extends AlertDialog implements
 	@Override
 	public void onColorChanged(int color) {
 
-		mNewColor.setColor(color);
+		if (mNewColor != null)
+			mNewColor.setColor(color);
 
 		if (mListener != null) {
 			mListener.onColorChanged(color);
@@ -104,11 +125,15 @@ public class ColorPickerDialog extends AlertDialog implements
 	}
 
 	public void setAlphaSliderVisible(boolean visible) {
-		mColorPicker.setAlphaSliderVisible(visible);
+		if (mColorPicker != null)
+			mColorPicker.setAlphaSliderVisible(visible);
 	}
 
 	public int getColor() {
-		return mColorPicker.getColor();
+		if (mColorPicker != null)
+			return mColorPicker.getColor();
+
+		return Color.TRANSPARENT;
 	}
 
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:wp="http://schemas.tombarrasso.com/wp7ui"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:paddingTop="12dp"
+	android:paddingLeft="16dp"
+	android:paddingRight="8dp"
+	android:paddingBottom="12dp">
+
+	<!-- Left Description -->
+	<com.tombarrasso.android.wp7ui.widget.WPTextView
+		android:layout_width="fill_parent"
+   	    android:layout_height="wrap_content"
+		android:textColor="@android:color/white"
+		android:textSize="22dp"
+		android:layout_marginRight="42dp"
+		android:layout_gravity="left|center_vertical"
+		android:layout_alignParentLeft="true"
+		android:id="@id/item_text" />
+
+	<!-- Right Toggle Switch -->
+	<com.tombarrasso.android.wp7ui.widget.WPCheckBox
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		wp:backgroundColor="#1F1F1F"
+		android:layout_alignParentRight="true"
+		android:id="@id/item_check"
+		android:focusable="false"
+		android:clickable="false"
+		android:layout_gravity="right|center_vertical"
+		android:layout_marginRight="0dp" />
+
+</RelativeLayout>

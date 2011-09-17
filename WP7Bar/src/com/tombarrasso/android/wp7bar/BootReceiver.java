@@ -39,6 +39,8 @@ public class BootReceiver extends BroadcastReceiver
 	public static final String TAG = BootReceiver.class.getSimpleName(),
 							   PACKAGE = BootReceiver.class.getPackage().getName();
 
+	private static final String ACTION_MY_PACKAGE_REPLACED = "android.intent.action.MY_PACKAGE_REPLACED";
+
 	@Override
 	public void onReceive(Context context, Intent intent)
 	{
@@ -54,9 +56,10 @@ public class BootReceiver extends BroadcastReceiver
 		final Intent mServiceIntent = new Intent();
 		mServiceIntent.setClassName(BarService.PACKAGE, BarService.PACKAGE + "." + BarService.TAG);
 
-		// Start on boot if set to do so.
-		if (mPrefs.isSetOnBoot() &&
-			mAction.equals(Intent.ACTION_BOOT_COMPLETED))
+		// Start on boot if set to do so, or if the app is replaced.
+		if ((mPrefs.isSetOnBoot() &&
+			mAction.equals(Intent.ACTION_BOOT_COMPLETED)) ||
+			mAction.equals(ACTION_MY_PACKAGE_REPLACED))
 			context.startService(mServiceIntent);
 	}
 }

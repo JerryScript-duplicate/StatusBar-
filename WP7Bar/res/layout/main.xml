@@ -165,5 +165,13 @@
 				android:layout_alignParentRight="true" />
 		</RelativeLayout>
 
+		<com.tombarrasso.android.wp7ui.widget.WPButtonView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/toggle_icons"
+			android:id="@id/icon_toggle"
+			android:textSize="22dp"
+			android:layout_marginTop="12dp" />
+
 	</LinearLayout>
 </ScrollView>

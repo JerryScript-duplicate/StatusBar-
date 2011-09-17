@@ -2,7 +2,8 @@
 <resources>
 	<!-- Application-wide Strings -->
     <string name="app_name">StatusBar+</string>
-	<string name="version_name">alpha one</string>
+	<string name="window_title">StatusBarPlus</string>
+	<string name="version_name">alpha two</string>
 	<string name="service_started">StatusBar+</string>
 	<string name="bar_service">StatusBar+</string>
 	<string name="notification_marquee">Select to toggle the custom status bar.</string>
@@ -13,9 +14,22 @@
 	<string name="cancel_button">Cancel</string>
 	<string name="expand_preference">Automatically disable expansion</string>
 	<string name="drop_preference">Click to drop</string>
+	<string name="toggle_icons">Hide/ show icons</string>
 	
 	<!-- Change log -->
     <string name="changelog_title_full">Change Log</string>
     <string name="changelog_title">What\'s New</string>
     <string name="changelog_ok">OK</string>
+
+	<!-- Order Matters! -->
+	<string-array name="icons">
+		<item>Signal</item>
+		<item>Data</item>
+		<item>Roaming</item>
+		<item>Wifi</item>
+		<item>Bluetooth</item>
+		<item>Language</item>
+		<item>Battery</item>
+		<item>Time</item>
+	</string-array>
 </resources>

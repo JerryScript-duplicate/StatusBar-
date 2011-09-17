@@ -44,10 +44,13 @@ import android.content.BroadcastReceiver;
 
 // UI Packages
 import com.tombarrasso.android.wp7ui.statusbar.*;
+import com.tombarrasso.android.wp7ui.widget.WPDigitalClock;
 
 // Java Packages
 import java.util.List;
 import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * This is a {@link Service} designed to open a {@link Window}
@@ -61,11 +64,18 @@ import java.util.ArrayList;
  * remove the status bar, or edit settings. Includes built-in
  * support for screen on/ off and unlock intents to disallow
  * expansion in a lockscreen (this may vary based on the lockscreen
- * currently used).
+ * currently used).<br /><br />
+ * <u>Change Log:</u>
+ * <b>Version 1.01</b>
+ * <ul>
+ *	<li>Now using {@link setForeground}/ {@link startForeground} to ensure that the {@link Service} remains running even in low-memory conditions.</li>
+ *	<li>System status bar height determination is now moved to {@link StatucBarView} and using a {@link Map} for the fallback for all pixel densities.</li>
+ *	<li>{@link WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY} used when "click to drop" is disabled.</li>
+ * </ul>
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-09-2011
- * @version		1.0
+ * @since		09-16-2011
+ * @version		1.01
  * @category	{@link Service}
  */
 
@@ -73,17 +83,11 @@ public final class BarService extends Service
 {
 	public static final String TAG = BarService.class.getSimpleName(),
 							   PACKAGE = BarService.class.getPackage().getName();
-	// This is not a coincidence, but 40 is the actual high
-	// for HDPI devices (in AOSP). This could be improved by
-	// having localized fallbacks for every density... but
-	// that seems excessive. Most ROMs seem to access the
-	// status bar's height with {@link Resources.getSystem}
-	// without any trouble so this is just a fallback.
-	private static final int mDefaultHeight = 40;
 
 	// Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private static final int NOTIFICATION = R.string.service_started;
+	public static final int FLAG_ALLOW_LOCK_WHILE_SCREEN_ON = 0x00000001;
 
 	// We'll need these things later.
 	private WindowManager mWM;
@@ -91,13 +95,6 @@ public final class BarService extends Service
 	private LayoutInflater mLI;
 	private StatusBarView mBarView;
 	private Preferences mPrefs;
-
-	/**
-	 * Find the height of the current system status bar.
-	 * If this cannot be determined rely on a default.
-	 */
-	private static final int mHeightId = Resources.getSystem().getIdentifier("status_bar_height", "dimen", "android");
-	private static final int mBarHeight = ((mHeightId == 0) ? mDefaultHeight : ((Resources.getSystem().getDimensionPixelSize(mHeightId) < 0) ? mDefaultHeight : Resources.getSystem().getDimensionPixelSize(mHeightId)));
 
 	// Initialize the intent filter statically.
 	private static final IntentFilter mFilter =
@@ -112,23 +109,6 @@ public final class BarService extends Service
 	private final PresenceReceiver mPresenceReceiver = new PresenceReceiver();
 
 	public static boolean wasScreenOn = true;
-
-	/**
-	 * Statically initialize the {@link WindowManager.LayoutParams}
-	 * to be used when creating a {@link Window} for the {@link StatusBarView}.
-	 */
-	private static final WindowManager.LayoutParams mParams =
-		new WindowManager.LayoutParams(
-		    WindowManager.LayoutParams.FILL_PARENT, mBarHeight,
-		    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-		    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-		    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-		    PixelFormat.TRANSLUCENT);
-
-	// Be sure that we are starting at (0, 0).
-	static {
-        mParams.gravity = Gravity.RIGHT | Gravity.TOP;
-	};
 
 	/**
      * @see IStatusBarService
@@ -235,6 +215,139 @@ public final class BarService extends Service
 		}
     };
 
+	private static final Class[] mStartForegroundSignature = new Class[] {
+        int.class, Notification.class};
+    private static final Class[] mStopForegroundSignature = new Class[] {
+        boolean.class};
+	private static final Class mClass = Service.class;
+    
+    private static Method mStartForeground;
+    private static Method mStopForeground;
+	private static Method mSetForeground;
+
+	// Obtain methods in a static context for effeciancy.
+	static {
+		try
+		{
+            mStartForeground = mClass.getMethod("startForeground",
+                    mStartForegroundSignature);
+        }
+		catch (NoSuchMethodException e)
+		{
+            // Running on an older platform.
+            mStartForeground = null;
+        }
+
+		try
+		{
+            mStopForeground = mClass.getMethod("stopForeground",
+                    mStopForegroundSignature);
+        }
+		catch (NoSuchMethodException e)
+		{
+            // Running on an older platform.
+            mStopForeground = null;
+        }
+
+		try
+		{
+            mSetForeground = mClass.getMethod("setForeground", mStopForegroundSignature);
+        }
+		catch (NoSuchMethodException e)
+		{
+            // Running on an older platform.
+            mSetForeground = null;
+        }
+	};
+
+    /**
+     * This is a wrapper around the new startForeground method, using the older
+     * APIs if it is not available.
+     */
+    private final void startForegroundCompat(
+		int id, Notification notification)
+	{
+        // If we have the new startForeground API, then use it.
+        if (mStartForeground != null)
+		{
+            try
+			{
+                mStartForeground.invoke(this, new Object[] { Integer.valueOf(id), notification });
+            }
+			catch (InvocationTargetException e)
+			{
+                // Should not happen.
+                Log.w(TAG, "Unable to invoke startForeground", e);
+            }
+			catch (IllegalAccessException e)
+			{
+                // Should not happen.
+                Log.w(TAG, "Unable to invoke startForeground", e);
+            }
+            return;
+        }
+        
+        // Fall back on the old API.
+        callSetForeground(true);
+        mNM.notify(id, notification);
+    }
+    
+    /**
+     * This is a wrapper around the new stopForeground method, using the older
+     * APIs if it is not available.
+     */
+    private final void stopForegroundCompat(int id)
+	{
+        // If we have the new stopForeground API, then use it.
+        if (mStopForeground != null)
+		{
+            try
+			{
+                mStopForeground.invoke(this, new Object[] { Boolean.TRUE });
+            }
+			catch (InvocationTargetException e)
+			{
+                // Should not happen.
+                Log.w(TAG, "Unable to invoke stopForeground", e);
+            }
+			catch (IllegalAccessException e)
+			{
+                // Should not happen.
+                Log.w(TAG, "Unable to invoke stopForeground", e);
+            }
+            return;
+        }
+        
+        // Fall back on the old API.  Note to cancel BEFORE changing the
+        // foreground state, since we could be killed at that point.
+        mNM.cancel(id);
+        callSetForeground(false);
+    }
+
+   /**
+	* Will call the "setForeground" method if available using reflection,
+	* since the method has been removed completely in Android 3.0 and
+	* above.
+	* @param foreground should service run as a foreground service?
+	*/
+	public final void callSetForeground(boolean foreground)
+	{
+		try
+		{
+			mSetForeground.invoke(this, new Object[] { (Boolean) foreground });
+		}
+		catch (IllegalAccessException e)
+		{
+			// Should not happen.
+			Log.w(TAG, "Unable to invoke setForeground", e);
+		}
+		catch (InvocationTargetException e)
+		{
+			// Should not happen.
+			Log.w(TAG, "Unable to invoke setForeground", e);
+		}
+	}
+
 	private void destroyStatusBar()
 	{
 		// Remove the view from the window.
@@ -272,6 +385,8 @@ public final class BarService extends Service
 			 mListeners.add((StateListener) TimeListener.getInstance(mContext));
 		if (WifiListener.hasInitialised())
 			 mListeners.add((StateListener) WifiListener.getInstance(mContext));
+		if (LanguageListener.hasInitialised())
+			 mListeners.add((StateListener) LanguageListener.getInstance(mContext));
 		
 		// Close all listeners.
 		// Check against null and use parameter-less
@@ -291,6 +406,35 @@ public final class BarService extends Service
 
 		if (mBarView == null)
 		{
+			// Use a TYPE_SYSTEM_OVERLAY when click to drop is
+			// disabled. This allows it to hover above even the
+			// system lockscreen, but it cannot consume touch events.
+			final WindowManager.LayoutParams mParams =
+				new WindowManager.LayoutParams(
+					WindowManager.LayoutParams.FILL_PARENT,
+					StatusBarView.getSystemStatusBarHeight(this),
+					((mPrefs.isDropEnabled()) ? 
+					WindowManager.LayoutParams.TYPE_SYSTEM_ALERT :
+					WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY),
+					WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+					WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+					WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+					WindowManager.LayoutParams.FLAG_TOUCHABLE_WHEN_WAKING |
+					WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+					PixelFormat.TRANSLUCENT);
+
+			// Be sure that we are starting at (0, 0).
+			mParams.gravity = Gravity.TOP | Gravity.FILL_HORIZONTAL;
+
+			// Add the window title noticable in HierarchyViewer.
+			mParams.setTitle(getString(R.string.window_title));
+			mParams.packageName = PACKAGE;
+
+			// Give the window an animation when opening.
+			final int mAnimId = Resources.getSystem().getIdentifier("Animation_statusBar", "style", "android");
+			if (mAnimId != 0)
+				mParams.windowAnimations = mAnimId;
+
 			// Inflate the status bar layout.
 			mBarView = (StatusBarView) mLI.inflate(R.layout.statusbar, null);
 
@@ -306,6 +450,45 @@ public final class BarService extends Service
 			if (!mPrefs.isDropEnabled())
 				mBarView.setDropAllowed(false);
 
+			final ArrayList<String> mIconKeys = Preferences.getIconKeys();
+			for (int i = 0, e = mBarView.getChildCount(); i < e; ++i)
+			{
+				final View mChild = mBarView.getChildAt(i);
+
+				for (String mKey : mIconKeys)
+				{
+					final boolean mKeyEnabled = mPrefs.getBoolean(mKey, true);
+					if (!mKeyEnabled)
+					{
+						// Hide all icons that are set to do so.
+						if ((Preferences.KEY_ICON_SIGNAL.equals(mKey) &&
+							mChild instanceof SignalView))
+							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_DATA.equals(mKey) &&
+							mChild instanceof DataView))
+							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_ROAMING.equals(mKey) &&
+							mChild instanceof RoamingView))
+							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_WIFI.equals(mKey) &&
+							mChild instanceof WifiView))
+							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_BLUETOOTH.equals(mKey) &&
+							mChild instanceof BluetoothView))
+							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_LANGUAGE.equals(mKey) &&
+							mChild instanceof LanguageView))
+							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_BATTERY.equals(mKey) &&
+							mChild instanceof BatteryView))
+							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_TIME.equals(mKey) &&
+							mChild instanceof WPDigitalClock))
+							mChild.setVisibility(View.GONE);
+					}
+				}
+			}
+
 			mWM.addView(mBarView, mParams);
 		}
 	}
@@ -314,15 +497,20 @@ public final class BarService extends Service
 	public void onCreate()
 	{
 		super.onCreate();
-
-		// Listen for screen on/ off.
-		registerReceiver(mScreenReceiver, mFilter);
-
-		// Listen for unlock.
-		registerReceiver(mPresenceReceiver, mLockFilter);
-
+	
 		// Get an instance of the preferences.
 		mPrefs = Preferences.getInstance(this);
+
+		// Don't bother listening to screen/ unlock
+		// events unless the setting is enabled.
+		if (mPrefs.isExpandDisabled())
+		{
+			// Listen for screen on/ off.
+			registerReceiver(mScreenReceiver, mFilter);
+
+			// Listen for unlock.
+			registerReceiver(mPresenceReceiver, mLockFilter);
+		}
 
         // Display a notification about us starting.
 		// We put an icon in the status bar.
@@ -395,9 +583,32 @@ public final class BarService extends Service
         return mBinder;
     }
 
+	private Thread mThread;
+
+	/**
+	 * Starts the {@link Thread} that monitors
+	 * when an {@link Activity} is opened/ launched.
+	 */
+	private final void startMonitorThread()
+	{
+		// Only monitor {@link Activity}s if
+		// the setting is enabled to do so.
+		if (!mPrefs.isUsingBlacklist()) return;
+
+		if (mThread != null)
+                mThread.interrupt();
+        
+		mThread = new MonitorActivityThread(new MonitorActivityHandler(this));
+		mThread.start();
+    }
+
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
+		// Start monitoring when apps are opened.
+		startMonitorThread();
+
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -409,7 +620,8 @@ public final class BarService extends Service
     private void showNotification()
 	{
 		// Get Notification and Activity Managers.
-		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		if (mNM == null)
+			mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         final CharSequence mTitle = getText(R.string.notification_marquee);
 
@@ -420,7 +632,6 @@ public final class BarService extends Service
 		// It is an ongoing serviec.
 		mNotif.flags = Notification.FLAG_ONGOING_EVENT;
 
-
         // The PendingIntent to launch our activity if
 		// the user selects this notification.
         final PendingIntent mIntent = PendingIntent.getActivity(this, 0,
@@ -430,7 +641,7 @@ public final class BarService extends Service
         mNotif.setLatestEventInfo(this,
 			getText(R.string.bar_service), mTitle, mIntent);
 
-        // Send the notification.
-        mNM.notify(NOTIFICATION, mNotif);
+		// Notify the user and enter foreground.
+		startForegroundCompat(NOTIFICATION, mNotif);
     }
 }

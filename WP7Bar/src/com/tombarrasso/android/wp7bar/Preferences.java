@@ -29,6 +29,7 @@ import android.app.ActivityManager;
 
 // Java Packages
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Static, singleton utility for maintaining preferences. This is just
@@ -51,11 +52,43 @@ public final class Preferences
 							   PACKAGE = Preferences.class.getPackage().getName();
 
 	// Keys used to store values.
-	private static final String KEY_BOOT = "service_onboot",
+	public static final String  KEY_BOOT = "service_onboot",
 								KEY_ICON = "color_icons",
 								KEY_BACKGROUND = "color_background",
 								KEY_EXPAND = "service_expand",
-								KEY_DROP = "service_drop";
+								KEY_DROP = "service_drop",
+								KEY_BLACKLIST = "service_use_blacklist",
+								KEY_ICON_SIGNAL = "icon_signal",
+								KEY_ICON_DATA = "icon_signal",
+								KEY_ICON_ROAMING = "icon_roaming",
+								KEY_ICON_WIFI = "icon_wifi",
+								KEY_ICON_BLUETOOTH = "icon_bluetooth",
+								KEY_ICON_LANGUAGE = "icon_language",
+								KEY_ICON_BATTERY = "icon_battery",
+								KEY_ICON_TIME = "icon_time";
+
+	// ArrayList containing the keys to all icons.
+	private static final ArrayList<String> mIcons = new ArrayList<String>();
+	static {
+		mIcons.add(KEY_ICON_SIGNAL);
+		mIcons.add(KEY_ICON_DATA);
+		mIcons.add(KEY_ICON_ROAMING);
+		mIcons.add(KEY_ICON_WIFI);
+		mIcons.add(KEY_ICON_BLUETOOTH);
+		mIcons.add(KEY_ICON_LANGUAGE);
+		mIcons.add(KEY_ICON_BATTERY);
+		mIcons.add(KEY_ICON_TIME);
+	};
+
+	/**
+	 * @return An {@link ArrayList} containing the String
+	 * keys for the settings of whether or not each icon
+	 * should be displayed or hidden in the status bar.
+	 */
+	public static final ArrayList<String> getIconKeys()
+	{
+		return mIcons;
+	}
 
 	private static Preferences mInstance;
 	private final Context mContext;
@@ -106,6 +139,24 @@ public final class Preferences
 	}
 
 	/**
+	 * @return Get a boolean value with a default.
+	 */
+    public final boolean getBoolean(String mKey, boolean mDefault)
+	{
+		return getPrefs().getBoolean(mKey, mDefault);
+    }
+
+	/**
+	 * Set the boolean value for a given key.
+	 */
+    public final void setBoolean(String mKey, boolean mValue)
+	{
+		final Editor mEditor = getPrefs().edit();
+		mEditor.putBoolean(mKey, mValue);
+		mEditor.commit();
+    }
+
+	/**
 	 * @return True if the background service is
 	 * turned on after a boot completion. The
 	 * default is false.
@@ -123,6 +174,29 @@ public final class Preferences
 	{
 		final Editor mEditor = getPrefs().edit();
 		mEditor.putBoolean(KEY_BOOT, boot);
+		mEditor.commit();
+	}
+
+	/**
+	 * @return True if the background service will
+	 * monitor when {@link Activity}s are opened and
+	 * check against a blacklist for auto-hiding.
+	 * Default is false.
+	 */
+    public final boolean isUsingBlacklist()
+	{
+		return getPrefs().getBoolean(KEY_BLACKLIST, false);
+    }
+
+	/**
+	 * Set whether or not the background service should
+	 * monitor when {@link Activity}s are opened and
+	 * check against a blacklist for auto-hiding.
+	 */
+	public final void setUsingBlacklist(boolean use)
+	{
+		final Editor mEditor = getPrefs().edit();
+		mEditor.putBoolean(KEY_BLACKLIST, use);
 		mEditor.commit();
 	}
 

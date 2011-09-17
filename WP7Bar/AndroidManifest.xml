@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.tombarrasso.android.wp7bar"
-      android:versionCode="4"
+      android:versionCode="5"
       android:versionName="@string/version_name">
     
     <!-- Required to false to offset some Market filtering. -->
@@ -10,21 +10,29 @@
 	<uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 	<uses-feature android:name="android.hardware.location" android:required="false" />
 	<uses-feature android:name="android.hardware.location.network" android:required="false" />
+	<uses-feature android:name="android.hardware.location.gps" android:required="false" />
 	<uses-feature android:name="android.hardware.telephony" android:required="false" />
 	<uses-feature android:name="android.hardware.wifi" android:required="false" />
 
 	<!-- Status Bar Permission -->
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.VIBRATE" android:required="false" />
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 	<uses-permission android:name="android.permission.GET_TASKS" />
+	<uses-permission android:name="android.permission.READ_LOGS" />
+
+	<!-- System indicator permissions -->
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" android:required="false" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" android:required="false" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" android:required="false" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:required="false" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:required="false" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:required="false" />
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" android:required="false" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:required="false" />
+
+	<!-- Wimax state -->
+	<uses-permission android:name="android.permission.ACCESS_WIMAX_STATE" android:required="false" />
 
 	<!-- Min SDK of 7, Android 2.1 Eclair -->
 	<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7" />
@@ -32,13 +40,13 @@
     <application
 		android:theme="@android:style/Theme.NoTitleBar"
 		android:label="@string/app_name"
-		android:icon="@drawable/icon">
+		android:icon="@drawable/icon"
+		android:persistent="true">
 
 		<!-- Activity launched via Launcher -->
         <activity android:name="HomeActivity"
                   android:label="@string/app_name"
 				  android:launchMode="singleTask"
-				  android:noHistory="true"
 				  android:stateNotNeeded="true">
             <intent-filter android:priority="1">
                 <action android:name="android.intent.action.MAIN" />
@@ -48,11 +56,21 @@
 				<action android:name="android.intent.action.CATEGORY_PREFERENCE" />
             </intent-filter>
         </activity>
+		
+		<!-- Activity launched via Launcher -->
+        <activity android:name="IconActivity"
+                  android:label="@string/app_name"
+				  android:stateNotNeeded="true">
+			<intent-filter>
+				<action android:name="android.intent.action.CATEGORY_PREFERENCE" />
+            </intent-filter>
+        </activity>
 
 		<!-- Receiver Notified When Device Is Booted -->
 		<receiver android:name="BootReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
+				<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
 			</intent-filter>
 		</receiver>
 	

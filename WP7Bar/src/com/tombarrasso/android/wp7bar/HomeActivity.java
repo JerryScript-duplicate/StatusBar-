@@ -32,6 +32,9 @@ import android.os.RemoteException;
 import android.widget.Checkable;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.graphics.Color;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 // Java Packages
 import java.lang.IllegalArgumentException;
@@ -39,6 +42,7 @@ import java.lang.IllegalArgumentException;
 // UI Packages
 import com.tombarrasso.android.wp7ui.extras.Changelog;
 import com.tombarrasso.android.wp7ui.app.WPDialog;
+import com.tombarrasso.android.wp7ui.WPTheme;
 
 // Color Picker Packages
 import afzkl.development.mColorPicker.ColorPickerDialog;
@@ -72,22 +76,59 @@ public class HomeActivity extends Activity
 				 mBackColorView,
 				 mIconColorView,
 				 mBackgroundDisplay,
-				 mIconDisplay;
+				 mIconDisplay,
+				 mIconToggle;
 
 	// Preferences and service,
 	private Preferences mPrefs;
 	private boolean mIsBound = false;
 
+	/**
+	 * Recursively set the text of all {@link TextView}s.
+	 */
+	public final void setTextColor(View mGroup, int color)
+	{
+		if (mGroup == null) return;
+
+		if (mGroup instanceof ViewGroup)
+		{
+			final ViewGroup mVGroup = (ViewGroup) mGroup;
+			for (int i = 0, e = mVGroup.getChildCount(); i < e; ++i)
+				setTextColor(mVGroup.getChildAt(i), color);
+		}
+		else if (mGroup instanceof TextView)
+		{
+			((TextView) mGroup).setTextColor(color);
+		}
+	}
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+		// This NEEDS to be in the initial activity
+		// to avoid themeColor being null.
+		WPTheme.setDefaultThemeColor();
+
 		mServiceIntent.setClassName(BarService.PACKAGE, BarService.PACKAGE + "." + BarService.TAG);
 		mPrefs = Preferences.getInstance(this);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 	
+		// Set light/ dark based on the theme.
+		final View mRoot = findViewById(R.id.root);
+		if (WPTheme.isDark() && mRoot != null)
+		{
+			mRoot.setBackgroundColor(Color.BLACK);
+			setTextColor(mRoot, Color.WHITE);
+		}
+		else if (mRoot != null)
+		{
+			mRoot.setBackgroundColor(Color.WHITE);
+			setTextColor(mRoot, Color.BLACK);
+		}
+
 		// Find the toggle for the status bar.
 		mEnableToggle = findViewById(R.id.enable_toggle);
 		mExpandToggle = findViewById(R.id.expand_toggle);
@@ -97,6 +138,10 @@ public class HomeActivity extends Activity
 		mIconColorView = findViewById(R.id.icon_color_preference);
 		mIconDisplay = findViewById(R.id.icon_pref);
 		mBackgroundDisplay = findViewById(R.id.background_pref);
+		mIconToggle = findViewById(R.id.icon_toggle);
+
+		// Set listener for icon button.
+		mIconToggle.setOnClickListener(mIconButtonListener);
 
 		// Set the display colors from preferences.
 		mBackgroundDisplay.setBackgroundColor(mPrefs.getBackgroundColor());
@@ -157,16 +202,29 @@ public class HomeActivity extends Activity
     	
     	switch(id)
     	{
-    	case DIALOG_CHANGELOG:
-    	{
-    		// Get the dialog for the change log.
-    		final Changelog mChangeLog = new Changelog(this);
-    		return mChangeLog.getLogDialog();
-    	}
+			case DIALOG_CHANGELOG:
+			{
+				// Get the dialog for the change log.
+				final Changelog mChangeLog = new Changelog(this);
+				return mChangeLog.getLogDialog();
+			}
 		}
 
 		return mDialog;
 	}
+	
+	// Listener for when the button that takes the
+	// user to the Activity to hide/ show icons is clicked.
+	private final View.OnClickListener mIconButtonListener =
+		new View.OnClickListener()
+	{
+		@Override
+		public void onClick(View mView)
+		{
+			// Launch the IconActivity.
+			startActivity(new Intent(HomeActivity.this, IconActivity.class));
+		}
+	};
 
 	/**
 	 * Listener for when a background color change has occured.
@@ -320,11 +378,14 @@ public class HomeActivity extends Activity
 			}
 			catch(IllegalArgumentException e) {}
 			mIsBound = false;
-			mConnection.nullifyService();
+
+			if (mConnection != null)
+				mConnection.nullifyService();
 		}
 	}
 
-	private static final BarServiceConnection mConnection = new BarServiceConnection();
+	private static final BarServiceConnection mConnection =
+		new BarServiceConnection();
 
 	/**
      * Class for interacting with the main interface of the service.

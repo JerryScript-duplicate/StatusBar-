@@ -19,10 +19,21 @@
     </style>
   </head>
   <body>
+$ 1.2
+  % alpha two
+  _ 2011-09-16
+  ! Thank you for supporting StatusBar+!
+  ! If you only see the time: click the status bar to drop the icons!
+	* Improved GSM, CDMA, and EVDO signal strength calculation.
+	* Added 4G LTE and WiMax signal strength calculation (experimental).
+	* A number of bug fixes and optimizations.
+	* Added the ability to hide/ show specific icons.
+	* Current language now automatically updates itself.
+	* MIUI support when "Click to drop" is disabled.
+	* Show StatusBar+ when in default lockscreen if "Click to drop" is disabled.
 $ 1.1
   % alpha one
   _ 2011-09-11
-	! Thank you for supporting StatusBar+!
 	* Fixed issue with toggling on/ off. Now the checkbox should more accurately represent whether or not the status bar is on.
 	* Added language indicator (requires toggle to refresh if you change your language).
 	* A few, small bug fixes.
