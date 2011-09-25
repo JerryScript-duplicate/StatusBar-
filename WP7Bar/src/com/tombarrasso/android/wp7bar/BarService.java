@@ -45,6 +45,7 @@ import android.content.BroadcastReceiver;
 // UI Packages
 import com.tombarrasso.android.wp7ui.statusbar.*;
 import com.tombarrasso.android.wp7ui.widget.WPDigitalClock;
+import com.tombarrasso.android.wp7ui.extras.MonitorActivityThread;
 
 // Java Packages
 import java.util.List;
@@ -71,10 +72,11 @@ import java.lang.reflect.Method;
  *	<li>Now using {@link setForeground}/ {@link startForeground} to ensure that the {@link Service} remains running even in low-memory conditions.</li>
  *	<li>System status bar height determination is now moved to {@link StatucBarView} and using a {@link Map} for the fallback for all pixel densities.</li>
  *	<li>{@link WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY} used when "click to drop" is disabled.</li>
+ *	<li>Added support for WidgetLocker, NoLock, No Lock Screen, Ripple Lock, and Agile Lock.</li>
  * </ul>
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-16-2011
+ * @since		09-25-2011
  * @version		1.01
  * @category	{@link Service}
  */
@@ -84,15 +86,32 @@ public final class BarService extends Service
 	public static final String TAG = BarService.class.getSimpleName(),
 							   PACKAGE = BarService.class.getPackage().getName();
 
+	// Action for when WidgetLocker is locked/ unlocked.
+	private static final String ACTION_WIDGETLOCKER_UNLOCKED = 
+		"com.teslacoilsw.widgetlocker.intent.UNLOCKED";
+	private static final String ACTION_WIDGETLOCKER_LOCKED = 
+		"com.teslacoilsw.widgetlocker.intent.LOCKED";
+
+	// Action for when NoLock is unlocked.
+	private static final String ACTION_NOLOCK_UNLOCKED =
+		"org.jraf.android.nolock.ACTION_UNLOCKED";
+	// Action for when NoLock is locked.
+	private static final String ACTION_NOLOCK_LOCKED =
+		"org.jraf.android.nolock.ACTION_LOCKED";
+	// Action for when No Lock Screen's state changes.
+	private static final String ACTION_NOLOCKSCREEN_LOCKSTATE =
+		"com.futonredemption.nokeyguard.lockstate";
+	// Action for when Ripple/ Agile lock is unlocked.
+	private static final String ACTION_RIPPLELOCK_UNLOCKED = 
+		"com.nanoha.UNLOCKED";
+
 	// Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private static final int NOTIFICATION = R.string.service_started;
 	public static final int FLAG_ALLOW_LOCK_WHILE_SCREEN_ON = 0x00000001;
 
 	// We'll need these things later.
-	private WindowManager mWM;
 	private NotificationManager mNM;
-	private LayoutInflater mLI;
 	private StatusBarView mBarView;
 	private Preferences mPrefs;
 
@@ -103,6 +122,10 @@ public final class BarService extends Service
 		new IntentFilter(Intent.ACTION_USER_PRESENT);
 	static {
         mFilter.addAction(Intent.ACTION_SCREEN_OFF);
+		mLockFilter.addAction(ACTION_WIDGETLOCKER_UNLOCKED);
+		mLockFilter.addAction(ACTION_NOLOCK_UNLOCKED);
+		mLockFilter.addAction(ACTION_NOLOCKSCREEN_LOCKSTATE);
+		mLockFilter.addAction(ACTION_RIPPLELOCK_UNLOCKED);
 	};
 
 	private final ScreenReceiver mScreenReceiver = new ScreenReceiver();
@@ -215,6 +238,7 @@ public final class BarService extends Service
 		}
     };
 
+	// Reflected methods for entering the foreground.
 	private static final Class[] mStartForegroundSignature = new Class[] {
         int.class, Notification.class};
     private static final Class[] mStopForegroundSignature = new Class[] {
@@ -227,6 +251,17 @@ public final class BarService extends Service
 
 	// Obtain methods in a static context for effeciancy.
 	static {
+		getForegroundMethods();
+	};
+
+	/**
+	 * Obtain {@link startForeground} and such {@link Method}s
+	 * using Reflection to avoid compatiblity issues. These
+	 * methods were introduced in Android 2.1+ API 7, and removed
+	 * in Android 3.0+ API 11 (without warning.).
+	 */
+	public static final void getForegroundMethods()
+	{
 		try
 		{
             mStartForeground = mClass.getMethod("startForeground",
@@ -258,7 +293,7 @@ public final class BarService extends Service
             // Running on an older platform.
             mSetForeground = null;
         }
-	};
+	}
 
     /**
      * This is a wrapper around the new startForeground method, using the older
@@ -348,11 +383,16 @@ public final class BarService extends Service
 		}
 	}
 
-	private void destroyStatusBar()
+	/**
+	 * Removes the {@link StatusBarView} from the {@link Window}
+	 * and detached all indicator listeners.
+	 */
+	private final void destroyStatusBar()
 	{
 		// Remove the view from the window.
 		if(mBarView != null)
 	    {
+			final WindowManager mWM = (WindowManager) getSystemService(WINDOW_SERVICE);
 	        mWM.removeView(mBarView);
 	        mBarView = null;
 	    }
@@ -396,13 +436,25 @@ public final class BarService extends Service
 				mListener.close();
 	}
 
-	private void createStatusBar()
+	// Flags used in the creation of a new window.
+	private static final int mFlags = 
+		WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+		WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+		WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+		WindowManager.LayoutParams.FLAG_TOUCHABLE_WHEN_WAKING |
+		WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH |
+		WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+
+	/**
+	 * Creates the {@link StatusBarView} and adds it
+	 * to its own {@link Window} of {@link TYPE_SYSTEM_ERROR}.
+	 */
+	private final void createStatusBar()
 	{
 		// Attach this View using WindowManager.
-		if (mWM == null)
-			mWM = (WindowManager) getSystemService(WINDOW_SERVICE);
-		if (mLI == null)
-			mLI = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		final WindowManager mWM = (WindowManager) getSystemService(WINDOW_SERVICE);
+		final LayoutInflater mLI = (LayoutInflater)
+			getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
 		if (mBarView == null)
 		{
@@ -413,14 +465,11 @@ public final class BarService extends Service
 				new WindowManager.LayoutParams(
 					WindowManager.LayoutParams.FILL_PARENT,
 					StatusBarView.getSystemStatusBarHeight(this),
-					((mPrefs.isDropEnabled()) ? 
-					WindowManager.LayoutParams.TYPE_SYSTEM_ALERT :
-					WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY),
-					WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-					WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
-					WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-					WindowManager.LayoutParams.FLAG_TOUCHABLE_WHEN_WAKING |
-					WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+					((mPrefs.isDropEnabled()) ?
+					WindowManager.LayoutParams.TYPE_SYSTEM_ERROR : 
+           			WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY),
+					((mPrefs.isDropEnabled()) ? mFlags : (mFlags |
+					WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)),
 					PixelFormat.TRANSLUCENT);
 
 			// Be sure that we are starting at (0, 0).
@@ -429,11 +478,6 @@ public final class BarService extends Service
 			// Add the window title noticable in HierarchyViewer.
 			mParams.setTitle(getString(R.string.window_title));
 			mParams.packageName = PACKAGE;
-
-			// Give the window an animation when opening.
-			final int mAnimId = Resources.getSystem().getIdentifier("Animation_statusBar", "style", "android");
-			if (mAnimId != 0)
-				mParams.windowAnimations = mAnimId;
 
 			// Inflate the status bar layout.
 			mBarView = (StatusBarView) mLI.inflate(R.layout.statusbar, null);
@@ -449,6 +493,10 @@ public final class BarService extends Service
 			// Set whether the icons should drop or not.
 			if (!mPrefs.isDropEnabled())
 				mBarView.setDropAllowed(false);
+
+			// Set whether swipe to display the system notifications or not.
+			if (!mPrefs.isSwipeEnabled())
+				mBarView.setExpand(false);
 
 			final ArrayList<String> mIconKeys = Preferences.getIconKeys();
 			for (int i = 0, e = mBarView.getChildCount(); i < e; ++i)
@@ -479,6 +527,9 @@ public final class BarService extends Service
 						else if ((Preferences.KEY_ICON_LANGUAGE.equals(mKey) &&
 							mChild instanceof LanguageView))
 							mChild.setVisibility(View.GONE);
+						else if ((Preferences.KEY_ICON_BATTERY_PERCENT
+							.equals(mKey) && mChild instanceof BatteryPercent))
+							mChild.setVisibility(View.GONE);
 						else if ((Preferences.KEY_ICON_BATTERY.equals(mKey) &&
 							mChild instanceof BatteryView))
 							mChild.setVisibility(View.GONE);
@@ -501,13 +552,21 @@ public final class BarService extends Service
 		// Get an instance of the preferences.
 		mPrefs = Preferences.getInstance(this);
 
-		// Don't bother listening to screen/ unlock
+		// Start monitoring when apps are opened.
+		startMonitorThread();
+
+		// Don't bother listening for screen on/ off
 		// events unless the setting is enabled.
-		if (mPrefs.isExpandDisabled())
+		if (mPrefs.isUsingBlacklist() || mPrefs.isExpandDisabled())
 		{
 			// Listen for screen on/ off.
 			registerReceiver(mScreenReceiver, mFilter);
+		}
 
+		// Don't bother listening to unlock
+		// events unless the setting is enabled.
+		if (mPrefs.isExpandDisabled())
+		{
 			// Listen for unlock.
 			registerReceiver(mPresenceReceiver, mLockFilter);
 		}
@@ -523,19 +582,24 @@ public final class BarService extends Service
 	{
 		destroyStatusBar();
 
-		// Cancel the status bar notification.
-		if (mNM != null)
-			mNM.cancel(NOTIFICATION);
+		// Stop running in the foreground and
+		// cancel the status bar notification.
+		stopForegroundCompat(NOTIFICATION);
+
+		// Kill activity monitoring system.
+		if (mThread != null)
+			mThread.interrupt();
 
 		super.onDestroy();
 	}
 
-	public class ScreenReceiver extends BroadcastReceiver
+	// Detects when the user has turned the screen on/ off.
+	public final class ScreenReceiver extends BroadcastReceiver
 	{
 		@Override
 		public void onReceive(Context context, Intent intent)
 		{
-			// Get be safe.
+			// Lets be safe.
 			if (intent == null) return;
 			final String mAction = intent.getAction();
 			if (mAction == null) return;
@@ -545,15 +609,20 @@ public final class BarService extends Service
 			{
 				if (mPrefs.isExpandDisabled())
 					mBarView.setExpand(false);
+
 		        wasScreenOn = false;
 		    }
 			else if (mAction.equals(Intent.ACTION_SCREEN_ON))
 			{
 		        wasScreenOn = true;
 		    }
+			
+			// Allow the {@link Thread} to sleep.
+			if (mThread != null) mThread.setScreen(wasScreenOn);
 		}
 	}
 
+	// Detects when the user has exited the lock screen.
 	public class PresenceReceiver extends BroadcastReceiver
 	{
 		@Override
@@ -565,14 +634,19 @@ public final class BarService extends Service
 			if (mAction == null) return;
 
 			// Make the status bar expandable when the device was unlocked.
-			if (mAction.equals(Intent.ACTION_USER_PRESENT))
+			if ((mAction.equals(Intent.ACTION_USER_PRESENT) ||
+				mAction.equals(ACTION_WIDGETLOCKER_UNLOCKED) ||
+				mAction.equals(ACTION_NOLOCK_UNLOCKED) ||
+				mAction.equals(ACTION_RIPPLELOCK_UNLOCKED)) || (
+				mAction.equals(ACTION_NOLOCKSCREEN_LOCKSTATE) &&
+				intent.getBooleanExtra("isActive", false)
+				))
 			{
 				if (mPrefs.isExpandDisabled())
 					mBarView.setExpand(true);
 			}
 		}
 	}
-
 
 	/**
 	 * Bind to an instance of {@link IStatusBarService} remotely.
@@ -583,7 +657,7 @@ public final class BarService extends Service
         return mBinder;
     }
 
-	private Thread mThread;
+	private MonitorActivityThread mThread;
 
 	/**
 	 * Starts the {@link Thread} that monitors
@@ -598,17 +672,14 @@ public final class BarService extends Service
 		if (mThread != null)
                 mThread.interrupt();
         
-		mThread = new MonitorActivityThread(new MonitorActivityHandler(this));
+		mThread = new MonitorActivityThread(this);
+		mThread.setActivityStartingListener(new MonitorActivityHandler(this));
 		mThread.start();
     }
-
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
-		// Start monitoring when apps are opened.
-		startMonitorThread();
-
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;

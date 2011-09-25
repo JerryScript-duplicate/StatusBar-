@@ -3,18 +3,21 @@
 	<!-- Application-wide Strings -->
     <string name="app_name">StatusBar+</string>
 	<string name="window_title">StatusBarPlus</string>
-	<string name="version_name">alpha two</string>
+	<string name="version_name">alpha five</string>
 	<string name="service_started">StatusBar+</string>
 	<string name="bar_service">StatusBar+</string>
-	<string name="notification_marquee">Select to toggle the custom status bar.</string>
+	<string name="notification_marquee">Select to toggle the custom status bar</string>
 	<string name="icon_color">Notification icon color</string>
 	<string name="background_color">Background color</string>
 	<string name="boot_preference">Set on boot</string>
 	<string name="change_button">Change</string>
 	<string name="cancel_button">Cancel</string>
-	<string name="expand_preference">Automatically disable expansion</string>
-	<string name="drop_preference">Click to drop</string>
+	<string name="expand_preference">Automatically disable expansion in lockscreen</string>
+	<string name="drop_preference">Click to drop (disable to always display icons)</string>
 	<string name="toggle_icons">Hide/ show icons</string>
+	<string name="autohide_preference">Auto-hide for specific applications</string>
+	<string name="toggle_apps">Choose applications</string>
+	<string name="swipe_preference">Swipe to display system notifications</string>
 	
 	<!-- Change log -->
     <string name="changelog_title_full">Change Log</string>
@@ -29,6 +32,7 @@
 		<item>Wifi</item>
 		<item>Bluetooth</item>
 		<item>Language</item>
+		<item>Battery Percent</item>
 		<item>Battery</item>
 		<item>Time</item>
 	</string-array>

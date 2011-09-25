@@ -30,8 +30,8 @@ package com.tombarrasso.android.wp7bar;
  * permissions... that just isn't right.
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-09-2011
- * @version		1.0
+ * @since		09-19-2011
+ * @version		1.01
  * @category	Interface
  */
 

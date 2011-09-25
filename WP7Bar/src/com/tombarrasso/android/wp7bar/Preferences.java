@@ -26,23 +26,36 @@ import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 import android.graphics.Color;
 import android.app.ActivityManager;
+import android.os.Handler;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.ApplicationInfo;
+import android.graphics.drawable.Drawable;
 
 // Java Packages
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Static, singleton utility for maintaining preferences. This is just
  * meant to keep things simple, clean, and in one location. Keep things
  * <abbr title="Don't Repeat Yourself">DRY</abbr> by doing so.<br /><br />
  * <u>Change Log:</u>
+ * <b>Version 1.01</b>
  * <ul>
  * 	<li>Using {@link ActivityManager} to check if the {@link Service} is running instead of preferences.</li>
  * </ul>
+ * <b>Version 1.02</b>
+ * <ul>
+ *	<li>Branching out to include {@link PackageManager} shortcuts to retrieve a list of applications, packages, etc.</li>
+ * </ul>
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-11-2011
- * @version		1.01
+ * @since		09-21-2011
+ * @version		1.02
  * @category	Static Utility
  */
 
@@ -50,7 +63,6 @@ public final class Preferences
 {
 	public static final String TAG = Preferences.class.getSimpleName(),
 							   PACKAGE = Preferences.class.getPackage().getName();
-
 	// Keys used to store values.
 	public static final String  KEY_BOOT = "service_onboot",
 								KEY_ICON = "color_icons",
@@ -58,14 +70,16 @@ public final class Preferences
 								KEY_EXPAND = "service_expand",
 								KEY_DROP = "service_drop",
 								KEY_BLACKLIST = "service_use_blacklist",
+								KEY_SWIPE = "service_swipe",
 								KEY_ICON_SIGNAL = "icon_signal",
-								KEY_ICON_DATA = "icon_signal",
+								KEY_ICON_DATA = "icon_data",
 								KEY_ICON_ROAMING = "icon_roaming",
 								KEY_ICON_WIFI = "icon_wifi",
 								KEY_ICON_BLUETOOTH = "icon_bluetooth",
 								KEY_ICON_LANGUAGE = "icon_language",
 								KEY_ICON_BATTERY = "icon_battery",
-								KEY_ICON_TIME = "icon_time";
+								KEY_ICON_TIME = "icon_time",
+								KEY_ICON_BATTERY_PERCENT = "icon_battery_percent";
 
 	// ArrayList containing the keys to all icons.
 	private static final ArrayList<String> mIcons = new ArrayList<String>();
@@ -76,6 +90,7 @@ public final class Preferences
 		mIcons.add(KEY_ICON_WIFI);
 		mIcons.add(KEY_ICON_BLUETOOTH);
 		mIcons.add(KEY_ICON_LANGUAGE);
+		mIcons.add(KEY_ICON_BATTERY_PERCENT);
 		mIcons.add(KEY_ICON_BATTERY);
 		mIcons.add(KEY_ICON_TIME);
 	};
@@ -90,14 +105,196 @@ public final class Preferences
 		return mIcons;
 	}
 
+	// Get all apps with a Launcher icon, or that are a Launcher.
+	private static final Intent mAppIntent =
+		new Intent(Intent.ACTION_MAIN, null);
+	static {
+		mAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+	};
+
+	/**
+	 * Information on a given application.
+	 */
+	public static final class AppInfo
+	{
+		private final String mName,
+							 mPackageName,
+							 mVersionName;
+
+		private final int mVersionCode;
+		private final Drawable mIcon;
+
+		public AppInfo(String mName, String mPackageName, String mVersionName, Drawable mIcon, int mVersionCode)
+		{
+			this.mVersionName = mVersionName;
+			this.mIcon = mIcon;
+			this.mName = mName;
+			this.mPackageName = mPackageName;
+			this.mVersionCode = mVersionCode;
+		}
+
+		/**
+		 * @return The icon of this application.
+		 */
+		public Drawable getIcon()
+		{
+			return mIcon;
+		}
+
+		/**
+		 * @return The version code of this application.
+		 */
+		public int getVersionCode()
+		{
+			return mVersionCode;
+		}
+
+		/**
+		 * @return The version name of this application.
+		 */
+		public String getVersionName()
+		{
+			return mVersionName;
+		}
+
+		/**
+		 * @return The package name of this application.
+		 */
+		public String getPackageName()
+		{
+			return mPackageName;
+		}
+
+		/**
+		 * @return The name of this application.
+		 */
+		public String getName()
+		{
+			return mName;
+		}
+	}
+
+	/**
+	 * @return An {@link ArrayList} containing the name of every
+	 * application installed on the user's device. This only includes
+	 * those with a category to display in a launcher, or that are a
+	 * launcher themselves.
+	 */
+	public final ArrayList<String> getAppNames()
+	{
+		final List<ResolveInfo> mApps = mPackageManager.queryIntentActivities(mAppIntent, 0);
+
+		// Order alphabetically from A - Z.
+		Collections.sort(mApps, new ResolveInfo.DisplayNameComparator(mPackageManager));
+
+		// Get the names of applications.
+		final ArrayList<String> mNames = new ArrayList<String>();
+		for (ResolveInfo mApp : mApps)
+			mNames.add(mApp.activityInfo.applicationInfo.loadLabel(mPackageManager).toString());
+
+		return mNames;
+	}
+	
+	/**
+	 * @return An {@link ArrayList} containing the package
+	 * name of every application installed.
+	 */
+	public final ArrayList<String> getAppPackages()
+	{
+		final List<PackageInfo> mPackages =
+			mPackageManager.getInstalledPackages(0);
+		final ArrayList<String> mPackageNames = new ArrayList<String>();
+		
+		for (PackageInfo mPackage : mPackages)
+			mPackageNames.add(mPackage.packageName);
+		
+		return mPackageNames;
+	}
+
+	/**
+	 * {@link Comparator} for {@link AppInfo} objects.
+	 */
+	public static final class AppComparator implements java.util.Comparator<AppInfo>
+	{
+		public int compare(AppInfo app1, AppInfo app2)
+		{
+			return (int) Math.signum(
+				(float) app1.getName()
+				.compareToIgnoreCase(app2.getName()));
+		}
+	}
+
+	/**
+	 * @param alphabetical True if you want the list of
+	 * applications sorted alphabetically.
+	 * 
+	 * @return An {@link ArrayList} of installed applications
+	 * containing all {@link AppInfo}.
+	 */
+	public final ArrayList<AppInfo> getApps(boolean alphabetical)
+	{
+		final List<PackageInfo> mPackages =
+			mPackageManager.getInstalledPackages(0);
+
+		final ArrayList<AppInfo> mApps = new ArrayList<AppInfo>();
+		
+		// Get information on all applications.
+		for (PackageInfo mPackage : mPackages)
+		{
+			final ArrayList<ResolveInfo> mActivities = findActivitiesForPackage(mPackage.packageName);
+
+			// Get all Activities for a launcher.
+			for (ResolveInfo mActivity : mActivities)
+			{
+				// Determine the application's icon,
+				// or use a default if none exists.
+				Drawable mIcon = mActivity.loadIcon(mPackageManager);
+				if (mIcon == null) mIcon =
+					mPackageManager.getDefaultActivityIcon();
+
+				// Add an item to the list.
+				mApps.add(new AppInfo(mActivity.loadLabel(mPackageManager).toString(), mPackage.packageName, mPackage.versionName,  mIcon, mPackage.versionCode));
+			}
+		}
+
+		if (alphabetical)
+			// Order alphabetically from A - Z.
+			Collections.sort(mApps, new AppComparator());
+		
+		return mApps;
+	}
+
+	/**
+	 * @return An {@link ArrayList} containing all {@link Activity}s that
+	 * have an intent to be launched via the launcher.
+	 */
+	private final ArrayList<ResolveInfo> findActivitiesForPackage(String packageName)
+	{
+        final Intent mIntent = new Intent(mAppIntent);
+        mIntent.setPackage(packageName);
+
+        final ArrayList<ResolveInfo> mApps = new ArrayList<ResolveInfo>(mPackageManager.queryIntentActivities(mIntent, 0));
+        return (mApps != null) ? mApps : new ArrayList<ResolveInfo>();
+    }
+
+	/**
+	 * @return An instance to {@link ActivityManager}.
+	 */
+	public final ActivityManager getActivityManager()
+	{
+		return mActivityManager;
+	}
+
 	private static Preferences mInstance;
 	private final Context mContext;
+	private final PackageManager mPackageManager;
 	private final ActivityManager mActivityManager;
 
 	public Preferences(Context mContext)
 	{
 		this.mContext = mContext;
 		mActivityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+		mPackageManager = mContext.getPackageManager();
 	}
 
 	/**
@@ -174,6 +371,27 @@ public final class Preferences
 	{
 		final Editor mEditor = getPrefs().edit();
 		mEditor.putBoolean(KEY_BOOT, boot);
+		mEditor.commit();
+	}
+
+	/**
+	 * @return True if the status bar is allowed to swipe
+	 * down to display the system status bar, false otherwise.
+	 * The default value is true.
+	 */
+    public final boolean isSwipeEnabled()
+	{
+		return getPrefs().getBoolean(KEY_SWIPE, true);
+    }
+
+	/**
+	 * Set whether or not the status bar should
+	 * be allowed to swipe up/ down.
+	 */
+	public final void setSwipe(boolean swipe)
+	{
+		final Editor mEditor = getPrefs().edit();
+		mEditor.putBoolean(KEY_SWIPE, swipe);
 		mEditor.commit();
 	}
 

@@ -47,6 +47,9 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
+// UI Packages
+import com.tombarrasso.android.wp7ui.widget.WPThemeView;
+
 /**
  * This {@link Activity} manages which icons are displayed
  * and which are not by filling a {@link ListView} with every
@@ -54,7 +57,7 @@ import java.util.List;
  * on and off.
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-16-2011
+ * @since		09-17-2011
  * @version		1.0
  * @category	{@link Activity}
  */
@@ -81,6 +84,13 @@ public class IconActivity extends ListActivity
 
 		// Bind to our new adapter.
         setListAdapter(mAdapter);
+
+		// Hide the divider.
+		getListView().setDivider(null); 
+		getListView().setDividerHeight(0); 
+
+		// Get rid of the overscroll glow.
+		WPThemeView.setOverScrollMode(getListView(), WPThemeView.OVER_SCROLL_NEVER);
 	}
 
 	// Handle click events here.
@@ -127,7 +137,7 @@ public class IconActivity extends ListActivity
             RelativeLayout mLayout = null;
             if (convertView == null)
                 mLayout = (RelativeLayout) mLI.inflate(R.layout.check_item, null);
-            else if (convertView instanceof LinearLayout)
+            else
 				mLayout = (RelativeLayout) convertView;
 
 			// Set the text and tag of the item.

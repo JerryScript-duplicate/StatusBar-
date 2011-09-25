@@ -24,34 +24,51 @@ import java.util.ArrayList;
 
 // Android Packages
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.app.Activity;
 import android.app.Service;
 import android.os.Handler;
 import android.app.ActivityManager;
+import android.app.ActivityManager.RunningTaskInfo;
 import android.util.Log;
+import android.os.RemoteException;
 
 // App Packages
-import com.tombarrasso.android.wp7bar.MonitorActivityThread.ActivityStartingListener;
+import com.tombarrasso.android.wp7bar.HomeActivity.BarServiceConnection;
+
+// UI Packages
+import com.tombarrasso.android.wp7ui.extras.MonitorActivityThread.ActivityStartingListener;
 
 /**
- * 
+ * {@link ActivityStartingListener} that is notified when a new {@link Activity}
+ * is opened by {@link MonitorActivityThread}. If one is found the status bar is
+ * hidden or shown based on the current black list used.
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
  * @version		1.0
- * @since		09-16-2011
+ * @since		09-25-2011
  * @category	{@link Handler}
  */
 
-public final class MonitorActivityHandler extends Handler
-	implements ActivityStartingListener
+public final class MonitorActivityHandler
+	implements ActivityStartingListener, Runnable
 {
 	public static final String TAG = MonitorActivityHandler.class.getSimpleName(),
 							   PACKAGE = MonitorActivityHandler.class.getPackage().getName();
 
+	private static final BarServiceConnection mConnection =
+		new BarServiceConnection();
+
+	private static final Intent mServiceIntent = new Intent();
+	static {
+		mServiceIntent.setClassName(BarService.PACKAGE, BarService.PACKAGE + "." + BarService.TAG);
+	};
+
 	private final Context mContext;
 	private final Preferences mPrefs;
-	private final ActivityManager mAM;
+	private String mPackageName, mActivityName;
+	private final Handler mHandler = new Handler();
 
 	public MonitorActivityHandler(Context mContext)
 	{
@@ -59,13 +76,42 @@ public final class MonitorActivityHandler extends Handler
 
 		// Get an instance of the preferences.
 		mPrefs = Preferences.getInstance(mContext);
+	}
 
-		mAM = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+	@Override
+	public void run()
+	{
+		// Don't hide for ourself.
+		if (mContext.getPackageName().equals(mPackageName)) return;
+
+		// Don't bother if we are not using the blacklist.
+		if (!mPrefs.isUsingBlacklist()) return;
+
+		// If the application is set to be automatically hidden.
+		final boolean mShouldHide = mPrefs.getBoolean(mPackageName, false);
+		if (!mContext.bindService(mServiceIntent, mConnection, 0)) return;
+	
+		final IStatusBarService mService = mConnection.getService();
+		if (mService == null) return;
+	
+		try
+		{
+			// Show/ hide the status bar based on the app.
+			if (mShouldHide) mService.hide();
+			else			 mService.show();
+		}
+		catch (RemoteException e)
+		{
+			Log.w(TAG, "StatusBar+ could not be hidden.");
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void onActivityStarting(String mPackageName, String mActivityName)
 	{
-		
+		this.mPackageName = mPackageName;
+		this.mActivityName = mActivityName;
+		mHandler.post(this);
 	}
 }

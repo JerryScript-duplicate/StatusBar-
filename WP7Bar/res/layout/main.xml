@@ -5,6 +5,7 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:id="@id/root">
+
 	<LinearLayout
 		android:padding="12dp"
 		android:orientation="vertical"
@@ -115,6 +116,31 @@
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:paddingTop="8dp"
+			android:paddingBottom="8dp">
+
+			<!-- Left Description -->
+			<com.tombarrasso.android.wp7ui.widget.WPTextView
+				android:text="@string/swipe_preference"
+				android:layout_width="fill_parent"
+		   	    android:layout_height="wrap_content"
+				android:textColor="@android:color/white"
+				android:textSize="22dp"
+				android:layout_marginRight="42dp"
+				android:layout_alignParentLeft="true" />
+
+			<!-- Right Toggle Switch -->
+			<com.tombarrasso.android.wp7ui.widget.WPCheckBox
+				android:id="@id/swipe_toggle"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				wp:backgroundColor="#1F1F1F"
+				android:layout_alignParentRight="true" />
+		</RelativeLayout>
+
+		<RelativeLayout
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:paddingTop="8dp"
 			android:paddingBottom="8dp"
 			android:paddingRight="16dp"
 			android:id="@id/icon_color_preference">
@@ -170,6 +196,39 @@
 			android:layout_height="wrap_content"
 			android:text="@string/toggle_icons"
 			android:id="@id/icon_toggle"
+			android:textSize="22dp"
+			android:layout_marginTop="12dp" />
+
+		<RelativeLayout
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:paddingTop="16dp"
+			android:paddingBottom="8dp">
+
+			<!-- Left Description -->
+			<com.tombarrasso.android.wp7ui.widget.WPTextView
+				android:text="@string/autohide_preference"
+				android:layout_width="fill_parent"
+		   	    android:layout_height="wrap_content"
+				android:textColor="@android:color/white"
+				android:textSize="22dp"
+				android:layout_marginRight="42dp"
+				android:layout_alignParentLeft="true" />
+
+			<!-- Right Toggle Switch -->
+			<com.tombarrasso.android.wp7ui.widget.WPCheckBox
+				android:id="@id/hide_toggle"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				wp:backgroundColor="#1F1F1F"
+				android:layout_alignParentRight="true" />
+		</RelativeLayout>
+
+		<com.tombarrasso.android.wp7ui.widget.WPButtonView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/toggle_apps"
+			android:id="@id/apps_toggle"
 			android:textSize="22dp"
 			android:layout_marginTop="12dp" />
 

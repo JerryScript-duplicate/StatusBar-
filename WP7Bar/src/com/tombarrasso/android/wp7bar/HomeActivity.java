@@ -22,6 +22,7 @@ package com.tombarrasso.android.wp7bar;
 import android.app.Activity;
 import android.os.Bundle;
 import android.content.Intent;
+import android.content.Context;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
 import android.view.View;
@@ -43,6 +44,7 @@ import java.lang.IllegalArgumentException;
 import com.tombarrasso.android.wp7ui.extras.Changelog;
 import com.tombarrasso.android.wp7ui.app.WPDialog;
 import com.tombarrasso.android.wp7ui.WPTheme;
+import com.tombarrasso.android.wp7ui.widget.WPThemeView;
 
 // Color Picker Packages
 import afzkl.development.mColorPicker.ColorPickerDialog;
@@ -54,7 +56,7 @@ import afzkl.development.mColorPicker.views.ColorPickerView.OnColorChangedListen
  * events and starts the corresponding service or change in UI.
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-09-2011
+ * @since		09-17-2011
  * @version		1.0
  * @category	{@link Activity}
  */
@@ -77,7 +79,10 @@ public class HomeActivity extends Activity
 				 mIconColorView,
 				 mBackgroundDisplay,
 				 mIconDisplay,
-				 mIconToggle;
+				 mIconToggle,
+				 mAppsToggle,
+				 mAppHideToggle,
+				 mSwipeToggle;
 
 	// Preferences and service,
 	private Preferences mPrefs;
@@ -129,6 +134,9 @@ public class HomeActivity extends Activity
 			setTextColor(mRoot, Color.BLACK);
 		}
 
+		// Get rid of the overscroll glow.
+		WPThemeView.setOverScrollMode(mRoot, WPThemeView.OVER_SCROLL_NEVER);
+
 		// Find the toggle for the status bar.
 		mEnableToggle = findViewById(R.id.enable_toggle);
 		mExpandToggle = findViewById(R.id.expand_toggle);
@@ -139,9 +147,15 @@ public class HomeActivity extends Activity
 		mIconDisplay = findViewById(R.id.icon_pref);
 		mBackgroundDisplay = findViewById(R.id.background_pref);
 		mIconToggle = findViewById(R.id.icon_toggle);
+		mAppsToggle = findViewById(R.id.apps_toggle);
+		mAppHideToggle = findViewById(R.id.hide_toggle);
+		mSwipeToggle = findViewById(R.id.swipe_toggle);
 
-		// Set listener for icon button.
-		mIconToggle.setOnClickListener(mIconButtonListener);
+		mAppsToggle.setEnabled(mPrefs.isUsingBlacklist());
+
+		// Set listener for icon and app buttons.
+		mIconToggle.setOnClickListener(new LaunchClickListener(IconActivity.class, HomeActivity.this));
+		mAppsToggle.setOnClickListener(new LaunchClickListener(BlacklistActivity.class, HomeActivity.this));
 
 		// Set the display colors from preferences.
 		mBackgroundDisplay.setBackgroundColor(mPrefs.getBackgroundColor());
@@ -155,6 +169,10 @@ public class HomeActivity extends Activity
 		if (mEnableToggle instanceof Checkable)
 			((Checkable) mEnableToggle).setChecked((mIsBound) ? mIsBound : mPrefs.isServiceRunning());
 
+		// Set initially whether or not swipe is enabled.
+		if (mSwipeToggle instanceof Checkable)
+			((Checkable) mSwipeToggle).setChecked(mPrefs.isSwipeEnabled());
+
 		// Set initially whether or expansion is automatically disabled.
 		if (mExpandToggle instanceof Checkable)
 			((Checkable) mEnableToggle).setChecked((mIsBound) ? mIsBound : mPrefs.isServiceRunning());
@@ -166,6 +184,10 @@ public class HomeActivity extends Activity
 		// Set initially whether or not to set on boot.
 		if (mDropToggle instanceof Checkable)
 			((Checkable) mDropToggle).setChecked(mPrefs.isDropEnabled());
+
+		// Set initially whether or not to use a blacklist.
+		if (mAppHideToggle instanceof Checkable)
+			((Checkable) mAppHideToggle).setChecked(mPrefs.isUsingBlacklist());
 
 		// Set these listeners AFTER determing the initial values,
 		// lest we end up with an infinite loop!
@@ -185,6 +207,14 @@ public class HomeActivity extends Activity
 		// If it is a check box listen for its changes.
 		if (mDropToggle instanceof CompoundButton)
 			((CompoundButton) mDropToggle).setOnCheckedChangeListener(mDropListener);
+
+		// If it is a check box listen for its changes.
+		if (mAppHideToggle instanceof CompoundButton)
+			((CompoundButton) mAppHideToggle).setOnCheckedChangeListener(mBlacklistListener);
+
+		// If it is a check box listen for its changes.
+		if (mSwipeToggle instanceof CompoundButton)
+			((CompoundButton) mSwipeToggle).setOnCheckedChangeListener(mSwipeListener);
 
 		// Display Change Log.
 		final Changelog mChangelog = new Changelog(this);
@@ -215,14 +245,22 @@ public class HomeActivity extends Activity
 	
 	// Listener for when the button that takes the
 	// user to the Activity to hide/ show icons is clicked.
-	private final View.OnClickListener mIconButtonListener =
-		new View.OnClickListener()
+	private static final class LaunchClickListener implements View.OnClickListener
 	{
+		private final Class mClass;
+		private final Context mContext;
+
+		public LaunchClickListener(Class mClass, Context mContext)
+		{
+			this.mClass = mClass;
+			this.mContext = mContext;
+		}
+
 		@Override
 		public void onClick(View mView)
 		{
 			// Launch the IconActivity.
-			startActivity(new Intent(HomeActivity.this, IconActivity.class));
+			mContext.startActivity(new Intent(mContext, mClass));
 		}
 	};
 
@@ -282,6 +320,33 @@ public class HomeActivity extends Activity
 				dialog.setOnColorChangedListener(mIconListener);
 				dialog.show();
 			}
+		}
+	};
+
+	/**
+	 * Listener for when the checkbox is checked/ unchecked.
+ 	 */
+	private final OnCheckedChangeListener mBlacklistListener = 
+		new OnCheckedChangeListener()
+	{
+		public void onCheckedChanged(
+			CompoundButton buttonView, boolean isChecked)
+		{
+			mAppsToggle.setEnabled(isChecked);
+			mPrefs.setUsingBlacklist(isChecked);
+		}
+	};
+
+	/**
+	 * Listener for when the checkbox is checked/ unchecked.
+ 	 */
+	private final OnCheckedChangeListener mSwipeListener = 
+		new OnCheckedChangeListener()
+	{
+		public void onCheckedChanged(
+			CompoundButton buttonView, boolean isChecked)
+		{
+			mPrefs.setSwipe(isChecked);
 		}
 	};
 
@@ -362,6 +427,20 @@ public class HomeActivity extends Activity
 			CompoundButton buttonView, boolean isChecked)
 		{
 			mPrefs.setDrop(isChecked);
+
+			if (!isChecked)
+			{
+				// If drop is disabled then we do not intercept touch
+				// events so swipe to display system notifications
+				// cannot be controlled.
+				mPrefs.setSwipe(true);
+
+				// Set initially whether or not swipe is enabled.
+				if (mSwipeToggle instanceof Checkable)
+					((Checkable) mSwipeToggle).setChecked(true);
+			}
+
+			mSwipeToggle.setEnabled(isChecked);
 		}
 	};
 

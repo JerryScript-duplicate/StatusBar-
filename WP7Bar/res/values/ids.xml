@@ -7,6 +7,9 @@
 	<item type="id" name="drop_toggle" />
 	<item type="id" name="expand_toggle" />
 	<item type="id" name="icon_toggle" />
+	<item type="id" name="hide_toggle" />
+	<item type="id" name="apps_toggle" />
+	<item type="id" name="swipe_toggle" />
 	<item type="id" name="color_picker_view" />
 	<item type="id" name="new_color_panel" />
 	<item type="id" name="old_color_panel" />
@@ -18,6 +21,10 @@
 	<item type="id" name="background_color_preference" />
 	<item type="id" name="item_text" />
 	<item type="id" name="item_check" />
+	<item type="id" name="item_icon" />
+	<item type="id" name="anchor_left" />
+	<item type="id" name="anchor_right" />
+	<item type="id" name="anchor_middle" />
 
 	<!-- Status Bar -->
     <item type="id" name="statusbarview" />
@@ -29,6 +36,7 @@
     <item type="id" name="statusbar_bluetooth" />
     <item type="id" name="statusbar_clock" />
     <item type="id" name="statusbar_battery" />
+	<item type="id" name="statusbar_battery_percent" />
 	<item type="id" name="statusbar_language" />
     <item type="id" name="themeview" />
 </resources>

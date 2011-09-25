@@ -19,10 +19,33 @@
     </style>
   </head>
   <body>
+$ 1.5
+  % alpha five
+  _ 2011-09-25
+  ! Thank you for supporting StatusBar+!
+	* Optimized the list of applications used by the black list.
+$ 1.4
+  % alpha four
+  _ 2011-09-22
+	* Optimized the automatic hiding feature.
+	* Fixed the automatic dropping icon force closes.
+	* Fixed 24-hour clock bug on some devices.
+	* Fixed a few other small bugs and typos.
+$ 1.3
+  % alpha three
+  _ 2011-09-21
+	* Added the ability to auto-hide the status bar when a given application is opened (experimental).
+	* Automatically drops the signal indicator when in a call.
+	* Added the ability to disable the swipe to display the system notification panel.
+	* Added a battery percent indicator.
+	* Plays nice with WidgetLocker and NoLock (experimental).
+	* Fixed bug with scrolling in icon list.
+	* Fixed bug with hiding time/ signal strength.
+	* Fixed Wi-Fi pulsation when searching/ connecting to a network.
+	* Removed overscroll glow in all lists (GB+).
 $ 1.2
   % alpha two
   _ 2011-09-16
-  ! Thank you for supporting StatusBar+!
   ! If you only see the time: click the status bar to drop the icons!
 	* Improved GSM, CDMA, and EVDO signal strength calculation.
 	* Added 4G LTE and WiMax signal strength calculation (experimental).
