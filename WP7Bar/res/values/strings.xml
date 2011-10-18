@@ -3,7 +3,7 @@
 	<!-- Application-wide Strings -->
     <string name="app_name">StatusBar+</string>
 	<string name="window_title">StatusBarPlus</string>
-	<string name="version_name">alpha five</string>
+	<string name="version_name">alpha six</string>
 	<string name="service_started">StatusBar+</string>
 	<string name="bar_service">StatusBar+</string>
 	<string name="notification_marquee">Select to toggle the custom status bar</string>
@@ -28,12 +28,35 @@
 	<string-array name="icons">
 		<item>Signal</item>
 		<item>Data</item>
+		<item>Carrier</item>
 		<item>Roaming</item>
 		<item>Wifi</item>
 		<item>Bluetooth</item>
+		<item>Ringer</item>
 		<item>Language</item>
 		<item>Battery Percent</item>
 		<item>Battery</item>
 		<item>Time</item>
 	</string-array>
+
+	<string name="drop_choice">Icon drop duration</string>
+	<!-- Durations for how long to drop the icons. -->
+	<string-array name="drop_times">
+		<item>5s</item>
+		<item>8s</item>
+		<item>10s</item>
+		<item>15s</item>
+		<item>20s</item>
+		<item>30s</item>
+	</string-array>
+
+	<!-- Time, in seconds, for how long to drop the icons. -->
+	<integer-array name="drop_durations">
+		<item>5</item>
+		<item>8</item>
+		<item>10</item>
+		<item>15</item>
+		<item>20</item>
+		<item>30</item>
+	</integer-array>
 </resources>

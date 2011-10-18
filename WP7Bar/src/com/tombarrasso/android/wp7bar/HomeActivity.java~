@@ -145,6 +145,15 @@ public class HomeActivity extends WPActivity
 		// Get rid of the overscroll glow.
 		WPThemeView.setOverScrollMode(mRoot, WPThemeView.OVER_SCROLL_NEVER);
 
+		// Display Change Log.
+		final Changelog mChangelog = new Changelog(this);
+
+		// This is temporary and only for the upgrade from v8 -> v9.
+		if (mChangelog.firstRun())
+		{
+			mPrefs.clear();
+		}
+
 		// Find the toggle for the status bar.
 		mEnableToggle = findViewById(R.id.enable_toggle);
 		mExpandToggle = findViewById(R.id.expand_toggle);
@@ -260,8 +269,6 @@ public class HomeActivity extends WPActivity
 		if (mSwipeToggle instanceof CompoundButton)
 			((CompoundButton) mSwipeToggle).setOnCheckedChangeListener(mSwipeListener);
 
-		// Display Change Log.
-		final Changelog mChangelog = new Changelog(this);
 		if (mChangelog.firstRun())
 		{
 			// Attach listener to show vibration dialog.

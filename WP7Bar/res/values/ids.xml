@@ -25,6 +25,7 @@
 	<item type="id" name="anchor_left" />
 	<item type="id" name="anchor_right" />
 	<item type="id" name="anchor_middle" />
+	<item type="id" name="drop_spinner" />
 
 	<!-- Status Bar -->
     <item type="id" name="statusbarview" />
@@ -38,5 +39,8 @@
     <item type="id" name="statusbar_battery" />
 	<item type="id" name="statusbar_battery_percent" />
 	<item type="id" name="statusbar_language" />
+	<item type="id" name="statusbar_carrier" />
+	<item type="id" name="statusbar_ringer" />
+
     <item type="id" name="themeview" />
 </resources>

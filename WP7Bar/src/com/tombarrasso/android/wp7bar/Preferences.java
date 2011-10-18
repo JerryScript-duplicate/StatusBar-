@@ -3,7 +3,7 @@ package com.tombarrasso.android.wp7bar;
 /*
  * Preferences.java
  *
- * Copyright (C) Thomas James Barrasso
+ * Copyright (C) 2011 Thomas James Barrasso
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+// UI Packages
+import com.tombarrasso.android.wp7ui.statusbar.StatusBarView;
+
 /**
  * Static, singleton utility for maintaining preferences. This is just
  * meant to keep things simple, clean, and in one location. Keep things
@@ -54,7 +57,7 @@ import java.util.Collections;
  * </ul>
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-21-2011
+ * @since		10-13-2011
  * @version		1.02
  * @category	Static Utility
  */
@@ -79,16 +82,21 @@ public final class Preferences
 								KEY_ICON_LANGUAGE = "icon_language",
 								KEY_ICON_BATTERY = "icon_battery",
 								KEY_ICON_TIME = "icon_time",
-								KEY_ICON_BATTERY_PERCENT = "icon_battery_percent";
+								KEY_ICON_BATTERY_PERCENT = "icon_battery_percent",
+								KEY_ICON_CARRIER = "icon_carrier",
+								KEY_ICON_RINGER = "icon_ringer",
+								KEY_DROP_DURATION = "service_drop_duration";
 
 	// ArrayList containing the keys to all icons.
 	private static final ArrayList<String> mIcons = new ArrayList<String>();
 	static {
 		mIcons.add(KEY_ICON_SIGNAL);
 		mIcons.add(KEY_ICON_DATA);
+		mIcons.add(KEY_ICON_CARRIER);
 		mIcons.add(KEY_ICON_ROAMING);
 		mIcons.add(KEY_ICON_WIFI);
 		mIcons.add(KEY_ICON_BLUETOOTH);
+		mIcons.add(KEY_ICON_RINGER);
 		mIcons.add(KEY_ICON_LANGUAGE);
 		mIcons.add(KEY_ICON_BATTERY_PERCENT);
 		mIcons.add(KEY_ICON_BATTERY);
@@ -313,9 +321,19 @@ public final class Preferences
 	 * @return An {@link ObscuredSharedPreferences} for this
 	 * application to store preferences/ settings.
 	 */
-	private final ObscuredSharedPreferences getPrefs()
+	private final SharedPreferences getPrefs()
 	{
-		return new ObscuredSharedPreferences(mContext, PreferenceManager.getDefaultSharedPreferences(mContext));
+		return PreferenceManager.getDefaultSharedPreferences(mContext);
+	}
+
+	/**
+	 * Clears ALL preferences.
+	 */
+	public final void clear()
+	{
+		final Editor mEditor = getPrefs().edit();
+		mEditor.clear();
+		mEditor.commit();
 	}
 
 	/**
@@ -371,6 +389,26 @@ public final class Preferences
 	{
 		final Editor mEditor = getPrefs().edit();
 		mEditor.putBoolean(KEY_BOOT, boot);
+		mEditor.commit();
+	}
+
+	/**
+	 * @return The duration, in seconds, for how long the
+	 * icons should drop if they are set to do so.
+	 */
+	public final int getDropDuration()
+	{
+		return getPrefs().getInt(KEY_DROP_DURATION, StatusBarView.DEFAULT_DROP_DURATION);
+	}
+
+	/**
+	 * Sets how long the icons should drop for, assuming
+	 * that isDropEnabled is set on. Units are seconds.
+	 */
+	public final void setDropDuration(int duration)
+	{
+		final Editor mEditor = getPrefs().edit();
+		mEditor.putInt(KEY_DROP_DURATION, duration);
 		mEditor.commit();
 	}
 

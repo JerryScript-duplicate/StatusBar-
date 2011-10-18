@@ -191,6 +191,22 @@
 				android:layout_alignParentRight="true" />
 		</RelativeLayout>
 
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+			<com.tombarrasso.android.wp7ui.widget.WPTextView
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginTop="10dip"
+				android:text="@string/drop_choice" />
+			<Spinner 
+				android:id="@id/drop_spinner"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:prompt="@string/drop_choice" />
+		</LinearLayout>
+
 		<com.tombarrasso.android.wp7ui.widget.WPButtonView
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"

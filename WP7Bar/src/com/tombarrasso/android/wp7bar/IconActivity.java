@@ -3,7 +3,7 @@ package com.tombarrasso.android.wp7bar;
 /*
  * IconActivity.java
  *
- * Copyright (C) Thomas James Barrasso
+ * Copyright (C) 2011 Thomas James Barrasso
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

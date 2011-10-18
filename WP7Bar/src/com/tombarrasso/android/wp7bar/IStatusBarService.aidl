@@ -3,7 +3,7 @@ package com.tombarrasso.android.wp7bar;
 /*
  * IStatusBarService.java
  *
- * Copyright (C) Thomas James Barrasso
+ * Copyright (C) 2011 Thomas James Barrasso
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,15 @@ package com.tombarrasso.android.wp7bar;
  * expand method is intentionally removed because Android requires
  * the {@link android.Manifest.permission.EXPAND_STATUS_BAR} to do
  * so and I am not looking to allow other applications access to my
- * permissions... that just isn't right.
+ * permissions... that just isn't right.<br /><br />
+ * <ul>
+ *	<li>Added background color API for making the status bar transparent when necessary.</li>
+ * </ul>
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		09-19-2011
+ * @since		10-15-2011
  * @version		1.01
- * @category	Interface
+ * @category	{@link Interface}
  */
 
 interface IStatusBarService
@@ -106,4 +109,20 @@ interface IStatusBarService
 	 * This only pertains to the Seven+ implementation.
 	 */
 	int getBackgroundColor();
+
+	/**
+	 * @return The height of the {@link StatusBarView}.
+	 */
+	int getHeight();
+
+	/**
+	 * Makes the background transparent.
+	 */
+	void makeBackgroundTransparent();
+
+	/**
+	 * Restores the background color to
+	 * the user's preference.
+	 */
+	void restoreBackgroundColor();
 }

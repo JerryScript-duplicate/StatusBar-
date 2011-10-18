@@ -529,6 +529,8 @@ public final class BarService extends Service
 			// Set whether the icons should drop or not.
 			if (!mPrefs.isDropEnabled())
 				mBarView.setDropAllowed(false);
+			else
+				mBarView.setBatteryIncrementDuration(2000);
 
 			// Set whether swipe to display the system notifications or not.
 			if (!mPrefs.isSwipeEnabled())

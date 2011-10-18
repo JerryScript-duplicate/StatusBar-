@@ -5,7 +5,7 @@ Copyright (C) Thomas James Barrasso
 
 Author: Thomas James Barrasso
 Name: StatusBar+
-Version: Alpha Three
+Version: Alpha Six
 License: Apache License, Version 2.0
 
 Description:

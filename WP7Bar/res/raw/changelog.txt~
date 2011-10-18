@@ -21,15 +21,13 @@
   <body>
 $ 1.6
   % alpha six
-  _ 2011-10-18
+  _ 2011-10-20
 	* Thank you for supporting StatusBar+!
 	* Improved LTE/ WiMax signal detection and compatibility (hopefully).
 	* Added carrier/ network operator indicator (with special support for CM7).
 	* Added new indicator for WiFi Access Point (tethering). <em>Note</em> this is <i>only</i> for official WiFi tethering.
 	* Added ringer state indicator (waves/ bell for vibrate and silent mode respectively).
-	* Added airplane mode and no signal indicator.
-	* Added battery charging indicator (as a fill animation).
-	* <em>Note:</em> settings from the previous version will be forgotten, sorry.
+	* <em>Note:</em> settings from the previous version will be forgotten.
 	* Added additional API features for communicating with other applications.
 $ 1.5
   % alpha five
