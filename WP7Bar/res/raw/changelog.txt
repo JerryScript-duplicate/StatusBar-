@@ -19,10 +19,20 @@
     </style>
   </head>
   <body>
+$ 1.8
+  % alpha seven
+  _ 2011-10-30
+	* Thank you for supporting StatusBar+!
+	* Fixed a few FCs.
+	* Added pivot with "about" tab.
+	* Dragons be ahead! Please be patient should any more issues arise.
+$ 1.7
+  % alpha six (2)
+  _ 2011-10-18
+	* Fixed a very bad FC from the evil goblins (related to the carrier label).
 $ 1.6
   % alpha six
   _ 2011-10-18
-	* Thank you for supporting StatusBar+!
 	* Improved LTE/ WiMax signal detection and compatibility (hopefully).
 	* Added carrier/ network operator indicator (with special support for CM7).
 	* Added new indicator for WiFi Access Point (tethering). <em>Note</em> this is <i>only</i> for official WiFi tethering.

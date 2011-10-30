@@ -3,7 +3,7 @@
 	<!-- Application-wide Strings -->
     <string name="app_name">StatusBar+</string>
 	<string name="window_title">StatusBarPlus</string>
-	<string name="version_name">alpha six</string>
+	<string name="version_name">alpha seven</string>
 	<string name="service_started">StatusBar+</string>
 	<string name="bar_service">StatusBar+</string>
 	<string name="notification_marquee">Select to toggle the custom status bar</string>
@@ -23,6 +23,13 @@
     <string name="changelog_title_full">Change Log</string>
     <string name="changelog_title">What\'s New</string>
     <string name="changelog_ok">OK</string>
+
+	<!-- Pivot Headers -->
+	<string name="settings">settings</string>
+	<string name="about">about</string>
+
+	<!-- Main Description of App -->
+	<string name="description"><b>StatusBar+</b> is the <i>first</i> custom status bar for any Android device done WP7 style, no root required. <u>If you only see time</u> this is not a bug: click the status bar to see the other indicators drop. Alternatively this can be disabled by unchecking \"Click to drop.\" Then all indicators will always remain visible.\nIf you like this application please <a href="https://market.android.com/details?id=com.tombarrasso.android.wp7bar">rate it</a>.\n\nFor more information visit our <a href="http://sevenplusandroid.org">website</a>.\n\nCopyright 2011 <a href="mailto:tbarrasso@sevenplusandroid.org">Thomas James Barrasso</a></string>
 
 	<!-- Order Matters! -->
 	<string-array name="icons">

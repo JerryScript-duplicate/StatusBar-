@@ -1,19 +1,12 @@
 StatusBar+ - A custom, open source status bar for ANY Android device.
 =============
 
-Copyright (C) Thomas James Barrasso
+Copyright (C) 2011 Thomas James Barrasso
 
-Author: Thomas James Barrasso
-
-Name: StatusBar+
-<<<<<<< HEAD
-Version: Alpha Six
-=======
-
-Version: Alpha Five
-
->>>>>>> 58de5a2f9c4161b469d8e508001fe6ae54304030
-License: Apache License, Version 2.0
+Author: Thomas James Barrasso  
+Name: StatusBar+  
+Version: Alpha Seven  
+License: Apache License, Version 2.0  
 
 Description:
 -------

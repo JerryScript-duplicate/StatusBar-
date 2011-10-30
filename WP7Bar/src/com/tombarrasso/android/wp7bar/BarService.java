@@ -41,6 +41,12 @@ import android.util.DisplayMetrics;
 import android.content.ComponentName;
 import android.view.View.OnLongClickListener;
 import android.content.BroadcastReceiver;
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.util.SparseArray;
+import android.view.accessibility.AccessibilityEvent;
+import android.os.Handler;
+import android.os.Message;
 
 // UI Packages
 import com.tombarrasso.android.wp7ui.statusbar.*;
@@ -74,17 +80,22 @@ import java.lang.reflect.Method;
  *	<li>{@link WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY} used when "click to drop" is disabled.</li>
  *	<li>Added support for WidgetLocker, NoLock, No Lock Screen, Ripple Lock, and Agile Lock.</li>
  * </ul>
+ * <b>Version 1.02</b>
+ * <ul>
+ *	<li>Fixed a {@link NullPointerException} in {@link ScreenReceiver}.</li>
+ *	<li>Added (then commented out) {@link AccessibilityService} stuff.</li>
+ * </ul>
  *
  * @author		Thomas James Barrasso <contact @ tombarrasso.com>
- * @since		10-18-2011
- * @version		1.01
+ * @since		10-28-2011
+ * @version		1.02
  * @category	{@link Service}
  */
 
 public final class BarService extends Service
 {
 	public static final String TAG = BarService.class.getSimpleName(),
-							   PACKAGE = BarService.class.getPackage().getName();
+							   	  PACKAGE = BarService.class.getPackage().getName();
 
 	/**
 	 * Sticky {@link Intent} used to notify other applications
@@ -589,10 +600,105 @@ public final class BarService extends Service
 		}
 	}
 
-	@Override
-	public void onCreate()
+	// Packages to ignore changes to.
+	/*private static final String[] EXCLUDED_PACKAGES =
 	{
-		super.onCreate();
+		"android.widget.",
+		"com.android.internal.view.",
+		"com.tombarrasso.android.wp7ui."
+	};
+
+	private boolean mPrevFullscreen = false;
+	private String mPrevActivity = null;
+
+	// Hide/ show the status bar based on whether or
+	// not the current window is full screen,
+	@Override
+    public void onAccessibilityEvent(AccessibilityEvent event)
+	{
+		final boolean mFullscreen = event.isFullScreen();
+		final String mActivity = "" + event.getClassName();
+
+		Log.v(TAG, mActivity + " = " + Boolean.toString(mFullscreen));
+
+		// Check against exclusions first.
+		for (final String mPackage : EXCLUDED_PACKAGES)
+			if (mActivity.startsWith(mPackage)) return;
+
+		if (mPrevFullscreen != mFullscreen)
+		{
+			if (mFullscreen)
+				mBarView.setVisibility(View.GONE);
+			else
+				mBarView.setVisibility(View.VISIBLE);
+
+			mPrevFullscreen = mFullscreen;
+			mPrevActivity = mActivity;
+		}
+	}
+
+	@Override
+    public void onInterrupt()
+	{
+
+	}
+
+	public static final int TYPE_WINDOW_CONTENT_CHANGED = 0x00000800;
+	*/
+	/**
+     * Sets the {@link AccessibilityServiceInfo} which informs the system how to
+     * handle this {@link AccessibilityService}.
+     *
+     * @param feedbackType The type of feedback this service will provide.
+     * <p>
+     *   Note: The feedbackType parameter is an bitwise or of all
+     *   feedback types this service would like to provide.
+     * </p>
+     */
+	/*
+    private void setServiceInfo(int feedbackType)
+	{
+		final AccessibilityServiceInfo info = new AccessibilityServiceInfo();
+		// We are interested in all types of accessibility events.
+		info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED |
+							TYPE_WINDOW_CONTENT_CHANGED;
+		// We want to provide specific type of feedback.
+		info.feedbackType = feedbackType;
+		// We want to receive events in a certain interval.
+		// info.notificationTimeout = EVENT_NOTIFICATION_TIMEOUT_MILLIS;
+		// We want to receive accessibility events only from certain packages.
+		// info.packageNames = PACKAGE_NAMES;
+		setServiceInfo(info);
+    }
+
+
+	@Override
+    public void onServiceConnected()
+	{
+        if (isInfrastructureInitialized) return;
+
+		create();
+
+		// Claim the events with which to listen to.
+		setServiceInfo(AccessibilityServiceInfo.FEEDBACK_GENERIC);
+
+		// We are in an initialized state now.
+        isInfrastructureInitialized = true;
+	}*/
+
+	/** Flag if the infrastructure is initialized. */
+    // private boolean isInfrastructureInitialized;
+
+	private boolean isCreated = false;
+
+	/**
+	 * Creates the status bar and applies all necessary
+	 * API calls, info, etc. Can only be called once
+	 * per initialization.
+	 */
+	protected void create()
+	{
+		if (isCreated) return;
 
 		// Remove the disabled intent and
 		// broadcast the enabled intent.
@@ -625,11 +731,42 @@ public final class BarService extends Service
 		// We put an icon in the status bar.
         showNotification();
 		createStatusBar();
+
+		isCreated = true;
 	}
-	
-    @Override
-    public void onDestroy()
+
+	@Override
+	public void onCreate()
 	{
+		super.onCreate();
+
+		create();
+	}
+
+	private boolean isDestroyed = false;
+	
+	/*@Override
+    public boolean onUnbind(Intent intent)
+	{
+        if (isInfrastructureInitialized) {
+
+            destroy();
+
+            // We are not in an initialized state anymore.
+            isInfrastructureInitialized = false;
+        }
+
+        return false;
+    }*/
+
+	/**
+	 * Destroys the status bar, removes all listeners, etc.
+	 * It can only be called once per initialization.
+	 */
+	private void destroy()
+	{
+		if (isDestroyed) return;
+
 		// Remove the disabled intent and
 		// broadcast the enabled intent.
 		removeStickyBroadcast(ENABLED_INTENT);
@@ -645,6 +782,14 @@ public final class BarService extends Service
 		if (mThread != null)
 			mThread.interrupt();
 
+		isDestroyed = true;
+	}
+
+    @Override
+    public void onDestroy()
+	{
+		destroy();
+
 		super.onDestroy();
 	}
 
@@ -654,8 +799,13 @@ public final class BarService extends Service
 		@Override
 		public void onReceive(Context context, Intent intent)
 		{
-			// Lets be safe.
-			if (intent == null) return;
+			// Lets be safe, these can (and have) occured
+			// when the status bar is just removed/ added
+			// and the screen has just been turned on/ off.
+			if (intent == null ||
+				mPrefs == null ||
+				mBarView == null) return;
+
 			final String mAction = intent.getAction();
 			if (mAction == null) return;
 
@@ -683,8 +833,10 @@ public final class BarService extends Service
 		@Override
 		public void onReceive(Context context, Intent intent)
 		{
-			// Get be safe.
-			if (intent == null) return;
+			// Let's be safe (see ScreenReciever)
+			if (intent == null ||
+				mPrefs == null ||
+				mBarView == null) return;
 			final String mAction = intent.getAction();
 			if (mAction == null) return;
 

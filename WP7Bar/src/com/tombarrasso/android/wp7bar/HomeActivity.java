@@ -33,6 +33,7 @@ import android.os.RemoteException;
 import android.widget.Checkable;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.text.method.LinkMovementMethod;
 import android.graphics.Color;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -50,6 +51,7 @@ import com.tombarrasso.android.wp7ui.app.WPDialog;
 import com.tombarrasso.android.wp7ui.app.WPActivity;
 import com.tombarrasso.android.wp7ui.WPTheme;
 import com.tombarrasso.android.wp7ui.widget.WPThemeView;
+import com.tombarrasso.android.wp7ui.widget.WPPivotControl;
 
 // Color Picker Packages
 import afzkl.development.mColorPicker.ColorPickerDialog;
@@ -75,6 +77,10 @@ public class HomeActivity extends WPActivity
 	private static final int DIALOG_CHANGELOG = 1984;
 	private final Intent mServiceIntent = new Intent();
 
+	// Pivot screen iDs.
+	private static final int SCREEN_ONE = 0,
+								SCREEN_TWO = 1;
+
 	// Views for settings and such.
 	private View mEnableToggle,
 				 mExpandToggle,
@@ -87,8 +93,11 @@ public class HomeActivity extends WPActivity
 				 mIconToggle,
 				 mAppsToggle,
 				 mAppHideToggle,
-				 mSwipeToggle;
+				 mSwipeToggle,
+				 mChangeLog;
+	private TextView mAbout;
 	private Spinner mDropSpinner;
+	private WPPivotControl mPivot;
 
 	// Preferences and service,
 	private Preferences mPrefs;
@@ -128,6 +137,11 @@ public class HomeActivity extends WPActivity
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+		// Set up the pivot.
+		mPivot = (WPPivotControl) findViewById(R.id.homePivot);
+		mPivot.setTab(SCREEN_ONE, R.string.settings)
+			  .setTab(SCREEN_TWO, R.string.about);
 	
 		// Set light/ dark based on the theme.
 		final View mRoot = findViewById(R.id.root);
@@ -159,6 +173,8 @@ public class HomeActivity extends WPActivity
 		mAppHideToggle = findViewById(R.id.hide_toggle);
 		mSwipeToggle = findViewById(R.id.swipe_toggle);
 		mDropSpinner = (Spinner) findViewById(R.id.drop_spinner);
+		mChangeLog = findViewById(R.id.changelog);
+		mAbout = (TextView) findViewById(R.id.about_description);
 
 		// Set spinner for drop duration.
 		final ArrayAdapter<CharSequence> mAdapter = ArrayAdapter.createFromResource(
@@ -267,6 +283,21 @@ public class HomeActivity extends WPActivity
 			// Attach listener to show vibration dialog.
 			showDialog(DIALOG_CHANGELOG);
 		}
+
+		// Make description links clickable.
+		mAbout.setMovementMethod(LinkMovementMethod.getInstance());
+
+		// When clicked, display the change log.
+		mChangeLog.setOnClickListener(
+			new View.OnClickListener()
+			{
+				@Override
+				public void onClick(View mView)
+				{
+					showDialog(DIALOG_CHANGELOG);
+				}			
+			}
+		);
     }
 
 	public static final SpinnerListener mSpinnerListener = new SpinnerListener();

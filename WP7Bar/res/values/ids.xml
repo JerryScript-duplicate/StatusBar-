@@ -42,5 +42,8 @@
 	<item type="id" name="statusbar_carrier" />
 	<item type="id" name="statusbar_ringer" />
 
+	<item type="id" name="homePivot" />
+	<item type="id" name="about_description" />
+	<item type="id" name="changelog" />
     <item type="id" name="themeview" />
 </resources>

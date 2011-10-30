@@ -42,7 +42,7 @@
 	    android:layout_height="16dp"
 	    android:textSize="16dp"
 		android:gravity="left"
-	    android:layout_marginTop="4dp"
+	    android:layout_marginTop="3dp"
 	    android:layout_marginLeft="2dp"
 	    android:id="@id/statusbar_carrier"
 	    android:layout_alignParentTop="true"

@@ -66,6 +66,15 @@ public final class Preferences
 {
 	public static final String TAG = Preferences.class.getSimpleName(),
 							   PACKAGE = Preferences.class.getPackage().getName();
+
+	/**
+	 * The class and package name of the {@link Activity}
+	 * to be launched to allow the user to enable {@link BarService}
+	 * with automatic full-screen detection.
+	 */
+	public static final String ACCESSIBILITY_SETTINGS =
+		"com.android.settings.AccessibilitySettings";
+
 	// Keys used to store values.
 	public static final String  KEY_BOOT = "service_onboot",
 								KEY_ICON = "color_icons",
@@ -323,7 +332,8 @@ public final class Preferences
 	 */
 	private final SharedPreferences getPrefs()
 	{
-		return PreferenceManager.getDefaultSharedPreferences(mContext);
+		return new TypeClearingPreferences( mContext, 
+			PreferenceManager.getDefaultSharedPreferences(mContext) );
 	}
 
 	/**
